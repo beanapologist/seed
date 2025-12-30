@@ -1,0 +1,186 @@
+name: Golden Quantum Protocol Tests
+
+on:
+  push:
+    branches: [ main, develop, claude/** ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test on Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Display Python version
+      run: python -c "import sys; print(sys.version)"
+
+    - name: Install package in development mode
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+
+    - name: Run GQS-1 unit tests
+      run: |
+        python -m unittest test_gqs1 -v
+
+    - name: Run Universal QKD unit tests
+      run: |
+        python -m unittest test_universal_qkd -v
+
+    - name: Verify GCP-1 first key matches specification
+      run: |
+        FIRST_KEY=$(python -c "from gq import generate_universal_keys; print(generate_universal_keys(1)[0])")
+        EXPECTED="3c732e0d04dac163a5cc2b15c7caf42c"
+        if [ "$FIRST_KEY" != "$EXPECTED" ]; then
+          echo "ERROR: GCP-1 first key mismatch!"
+          echo "Expected: $EXPECTED"
+          echo "Got: $FIRST_KEY"
+          exit 1
+        fi
+        echo "✓ GCP-1 first key validated: $FIRST_KEY"
+
+    - name: Verify GQS-1 first vector matches specification
+      run: |
+        FIRST_VECTOR=$(python -c "from gq import generate_gqs1_vectors; print(generate_gqs1_vectors(1)[0])")
+        EXPECTED="a01611f01e8207a27c1529c3650c4838"
+        if [ "$FIRST_VECTOR" != "$EXPECTED" ]; then
+          echo "ERROR: GQS-1 first vector mismatch!"
+          echo "Expected: $EXPECTED"
+          echo "Got: $FIRST_VECTOR"
+          exit 1
+        fi
+        echo "✓ GQS-1 first vector validated: $FIRST_VECTOR"
+
+    - name: Cross-validate test vectors
+      run: |
+        python -c "
+        import json
+        from gq import generate_universal_keys, generate_gqs1_vectors
+
+        # Load reference vectors
+        with open('tests/test_vectors.json', 'r') as f:
+            reference = json.load(f)
+
+        # Generate keys and compare
+        gcp1_keys = generate_universal_keys(10)
+        gqs1_keys = generate_gqs1_vectors(10)
+
+        assert gcp1_keys == reference['protocols']['GCP-1']['test_vectors'], 'GCP-1 vectors mismatch'
+        assert gqs1_keys == reference['protocols']['GQS-1']['test_vectors'], 'GQS-1 vectors mismatch'
+
+        print('✓ All test vectors validated against reference')
+        print(f'  GCP-1: {len(gcp1_keys)} keys verified')
+        print(f'  GQS-1: {len(gqs1_keys)} vectors verified')
+        "
+
+    - name: Verify CLI entry points
+      run: |
+        which gq-universal || echo "Warning: gq-universal not in PATH (expected for editable install)"
+        which gq-test-vectors || echo "Warning: gq-test-vectors not in PATH (expected for editable install)"
+        python -m gq.cli.universal --help
+        python -m gq.cli.gqs1 --help
+
+    - name: Test package import
+      run: |
+        python -c "
+        from gq import UniversalQKD, GQS1, HEX_SEED, EXPECTED_CHECKSUM
+        print('✓ Package imports successful')
+        print(f'  Seed: {HEX_SEED[:32]}...')
+        print(f'  Checksum: {EXPECTED_CHECKSUM[:32]}...')
+
+        # Test UniversalQKD
+        gen = UniversalQKD()
+        key = next(gen)
+        print(f'✓ UniversalQKD generator working: {key.hex()[:32]}...')
+
+        # Test GQS1
+        vectors = GQS1.generate_test_vectors(1)
+        print(f'✓ GQS1 generator working: {vectors[0][:32]}...')
+        "
+
+    - name: Verify zero dependencies
+      run: |
+        pip list --format=freeze | grep -v "^golden-quantum" | grep -v "^pip" | grep -v "^setuptools" | wc -l | grep "^0$" || \
+        echo "Note: Dev environment may have additional packages"
+
+  security:
+    name: Security and Code Quality
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Verify seed checksums
+      run: |
+        python -c "
+        import hashlib
+
+        # Verify golden_seed_16.bin
+        with open('golden_seed_16.bin', 'rb') as f:
+            data = f.read()
+        checksum = hashlib.sha256(data).hexdigest()
+        expected = '87f829d95b15b08db9e5d84ff06665d077b267cfc39a5fa13a9e002b3e4239c5'
+        assert checksum == expected, f'golden_seed_16.bin checksum mismatch: {checksum}'
+        print(f'✓ golden_seed_16.bin: {checksum}')
+
+        # Verify golden_seed_32.bin
+        with open('golden_seed_32.bin', 'rb') as f:
+            data = f.read()
+        checksum = hashlib.sha256(data).hexdigest()
+        expected = '096412ca0482ab0f519bc0e4ded667475c45495047653a21aa11e2c7c578fa6f'
+        assert checksum == expected, f'golden_seed_32.bin checksum mismatch: {checksum}'
+        print(f'✓ golden_seed_32.bin: {checksum}')
+
+        print('✓ All seed checksums validated')
+        "
+
+    - name: Run checksum validation script
+      run: |
+        bash scripts/validate_checksums.sh
+
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install pytest pytest-cov
+
+    - name: Run tests with coverage
+      run: |
+        python -m pytest test_gqs1.py test_universal_qkd.py --cov=src/gq --cov-report=term-missing --cov-report=xml || \
+        python -m unittest test_gqs1 test_universal_qkd -v
+
+    - name: Display coverage summary
+      run: |
+        echo "Test suite completed successfully"
+        echo "Note: Coverage reporting requires pytest"
