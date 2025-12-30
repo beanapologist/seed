@@ -40,6 +40,8 @@ Language-agnostic, pure machine representation
 > **Note:** The examples below are simplified for clarity. Production code should include comprehensive error handling appropriate for your language and use case.
 
 ### Python
+
+**Library Usage:**
 ```python
 with open('golden_seed_32.bin', 'rb') as f:
     seed = f.read(32)
@@ -47,6 +49,38 @@ with open('golden_seed_32.bin', 'rb') as f:
 # XOR with block hash for tie-breaking
 block_hash = b'\x00' * 32  # Your block hash here
 result = bytes(a ^ b for a, b in zip(block_hash, seed))
+```
+
+**GQS-1 Test Vector Generation:**
+
+This repository includes a Python implementation (`gqs1.py`) for generating GQS-1 compliant test vectors. The CLI supports multiple output formats and options:
+
+```bash
+# Generate 10 test vectors (default)
+python gqs1.py
+
+# Generate 100 test vectors
+python gqs1.py -n 100
+
+# Output in JSON format
+python gqs1.py -n 20 --json
+
+# Save to file
+python gqs1.py -n 50 -o vectors.txt
+
+# Quiet mode (vectors only, no headers)
+python gqs1.py -n 5 --quiet
+
+# Verify seed checksum only
+python gqs1.py --verify-only
+
+# Save JSON output to file
+python gqs1.py -n 100 --json -o vectors.json
+```
+
+For more options, run:
+```bash
+python gqs1.py --help
 ```
 
 ### C/C++

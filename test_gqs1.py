@@ -8,8 +8,14 @@ Tests validate:
 - XOR folding hardening
 - Complete test vector generation
 - Cross-implementation consistency
+- CLI argument parsing and file I/O
 """
 
+import json
+import os
+import subprocess
+import sys
+import tempfile
 import unittest
 import hashlib
 from unittest.mock import patch
@@ -223,25 +229,152 @@ class TestGQS1(unittest.TestCase):
 
 class TestGQS1Integration(unittest.TestCase):
     """Integration tests for complete GQS-1 workflow."""
-    
+
     def test_complete_workflow(self):
         """Test complete workflow from seed to test vectors."""
         # Initialize seed
         seed = bytes.fromhex(HEX_SEED)
-        
+
         # Verify checksum
         self.assertTrue(verify_seed_checksum(seed))
-        
+
         # Generate test vectors
         vectors = generate_test_vectors(10)
-        
+
         # Verify properties
         self.assertEqual(len(vectors), 10)
         self.assertTrue(all(len(v) == 32 for v in vectors))
         self.assertTrue(all(isinstance(v, str) for v in vectors))
-        
+
         # Verify uniqueness
         self.assertEqual(len(set(vectors)), 10)
+
+
+class TestGQS1CLI(unittest.TestCase):
+    """Test suite for GQS-1 CLI interface."""
+
+    def run_cli(self, args):
+        """Helper method to run CLI and capture output."""
+        result = subprocess.run(
+            [sys.executable, "gqs1.py"] + args,
+            capture_output=True,
+            text=True
+        )
+        return result
+
+    def test_cli_default_execution(self):
+        """Test CLI with default parameters (10 vectors)."""
+        result = self.run_cli([])
+        self.assertEqual(result.returncode, 0)
+
+        # Should have informational output in stderr
+        self.assertIn("GQS-1", result.stderr)
+
+        # Should have 10 vectors in stdout
+        output_lines = [line for line in result.stdout.strip().split('\n') if line]
+        # With headers, should have more than 10 lines
+        self.assertGreater(len(output_lines), 10)
+
+    def test_cli_custom_num_keys(self):
+        """Test CLI with custom number of keys."""
+        result = self.run_cli(["-n", "5"])
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Generating 5 test vectors", result.stderr)
+
+    def test_cli_quiet_mode(self):
+        """Test CLI quiet mode."""
+        result = self.run_cli(["-n", "3", "--quiet"])
+        self.assertEqual(result.returncode, 0)
+
+        # Stderr should be empty or minimal
+        self.assertEqual(result.stderr, "")
+
+        # Should have exactly 3 hex strings in output
+        output_lines = [line for line in result.stdout.strip().split('\n') if line]
+        self.assertEqual(len(output_lines), 3)
+
+        # Each line should be 32 chars (hex string)
+        for line in output_lines:
+            self.assertEqual(len(line), 32)
+
+    def test_cli_json_output(self):
+        """Test CLI JSON output format."""
+        result = self.run_cli(["-n", "5", "--json"])
+        self.assertEqual(result.returncode, 0)
+
+        # Parse JSON output
+        output_data = json.loads(result.stdout)
+
+        # Verify JSON structure
+        self.assertIn("protocol", output_data)
+        self.assertEqual(output_data["protocol"], "GQS-1")
+        self.assertIn("vectors", output_data)
+        self.assertEqual(len(output_data["vectors"]), 5)
+        self.assertEqual(output_data["num_vectors"], 5)
+
+    def test_cli_file_output(self):
+        """Test CLI file output."""
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+            temp_file = f.name
+
+        try:
+            result = self.run_cli(["-n", "3", "-o", temp_file, "--quiet"])
+            self.assertEqual(result.returncode, 0)
+
+            # Read output file
+            with open(temp_file, 'r') as f:
+                content = f.read()
+
+            # Should have 3 vectors
+            lines = [line for line in content.strip().split('\n') if line]
+            self.assertEqual(len(lines), 3)
+
+            # Each should be valid hex
+            for line in lines:
+                self.assertEqual(len(line), 32)
+                bytes.fromhex(line)  # Should not raise
+        finally:
+            if os.path.exists(temp_file):
+                os.unlink(temp_file)
+
+    def test_cli_json_file_output(self):
+        """Test CLI JSON file output."""
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+            temp_file = f.name
+
+        try:
+            result = self.run_cli(["-n", "5", "--json", "-o", temp_file])
+            self.assertEqual(result.returncode, 0)
+
+            # Read and parse JSON file
+            with open(temp_file, 'r') as f:
+                data = json.load(f)
+
+            # Verify JSON content
+            self.assertEqual(data["protocol"], "GQS-1")
+            self.assertEqual(len(data["vectors"]), 5)
+        finally:
+            if os.path.exists(temp_file):
+                os.unlink(temp_file)
+
+    def test_cli_verify_only(self):
+        """Test CLI verify-only mode."""
+        result = self.run_cli(["--verify-only"])
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("verified successfully", result.stderr)
+
+    def test_cli_invalid_num_keys(self):
+        """Test CLI with invalid number of keys."""
+        result = self.run_cli(["-n", "0"])
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("ERROR", result.stderr)
+
+    def test_cli_help(self):
+        """Test CLI help message."""
+        result = self.run_cli(["--help"])
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Generate GQS-1 compliant test vectors", result.stdout)
+        self.assertIn("Examples:", result.stdout)
 
 
 if __name__ == "__main__":

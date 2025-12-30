@@ -13,7 +13,10 @@ Protocol Overview:
 6. Output keys as hexadecimal strings
 """
 
+import argparse
 import hashlib
+import json
+import sys
 from typing import List
 
 
@@ -164,30 +167,134 @@ def main():
     """
     Main function to generate and display test vectors.
     """
-    print("Golden Quantum Standard (GQS-1) Test Vector Generation")
-    print("=" * 60)
-    print()
-    print(f"Hex Seed: {HEX_SEED}")
-    print(f"Expected Checksum: {EXPECTED_CHECKSUM}")
-    print()
-    
-    # Verify seed
+    parser = argparse.ArgumentParser(
+        description="Generate GQS-1 compliant test vectors for quantum key distribution testing",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s                          # Generate 10 test vectors (default)
+  %(prog)s -n 100                   # Generate 100 test vectors
+  %(prog)s -n 50 -o vectors.txt     # Save 50 vectors to file
+  %(prog)s -n 20 --json             # Output 20 vectors in JSON format
+  %(prog)s --json -o vectors.json   # Save JSON output to file
+  %(prog)s --quiet -n 5             # Generate 5 vectors with minimal output
+        """
+    )
+
+    parser.add_argument(
+        "-n", "--num-keys",
+        type=int,
+        default=10,
+        metavar="N",
+        help="number of test vectors to generate (default: 10)"
+    )
+
+    parser.add_argument(
+        "-o", "--output",
+        type=str,
+        metavar="FILE",
+        help="output file path (default: stdout)"
+    )
+
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="output in JSON format"
+    )
+
+    parser.add_argument(
+        "-q", "--quiet",
+        action="store_true",
+        help="suppress informational messages, only output vectors"
+    )
+
+    parser.add_argument(
+        "--verify-only",
+        action="store_true",
+        help="only verify seed checksum without generating vectors"
+    )
+
+    args = parser.parse_args()
+
+    # Verify seed checksum
     seed = bytes.fromhex(HEX_SEED)
     actual_checksum = hashlib.sha256(seed).hexdigest()
-    print(f"Actual Checksum: {actual_checksum}")
-    print(f"Checksum Valid: {verify_seed_checksum(seed)}")
-    print()
-    
+
+    if not args.quiet:
+        print("Golden Quantum Standard (GQS-1) Test Vector Generation", file=sys.stderr)
+        print("=" * 60, file=sys.stderr)
+        print(file=sys.stderr)
+        print(f"Hex Seed: {HEX_SEED}", file=sys.stderr)
+        print(f"Expected Checksum: {EXPECTED_CHECKSUM}", file=sys.stderr)
+        print(f"Actual Checksum: {actual_checksum}", file=sys.stderr)
+        print(f"Checksum Valid: {verify_seed_checksum(seed)}", file=sys.stderr)
+        print(file=sys.stderr)
+
+    if not verify_seed_checksum(seed):
+        print("ERROR: Seed checksum verification failed!", file=sys.stderr)
+        sys.exit(1)
+
+    if args.verify_only:
+        if not args.quiet:
+            print("✓ Seed checksum verified successfully", file=sys.stderr)
+        sys.exit(0)
+
+    # Validate num_keys
+    if args.num_keys < 1:
+        print("ERROR: Number of keys must be at least 1", file=sys.stderr)
+        sys.exit(1)
+
+    if args.num_keys > 1000000:
+        print("WARNING: Generating a large number of keys may take time", file=sys.stderr)
+
     # Generate test vectors
-    print("Generating first 10 test vectors...")
-    print()
-    test_vectors = generate_test_vectors(10)
-    
-    print("Test Vectors:")
-    print("-" * 60)
-    for i, key in enumerate(test_vectors, 1):
-        print(f"Key {i:2d}: {key}")
-    print()
+    if not args.quiet:
+        print(f"Generating {args.num_keys} test vector{'s' if args.num_keys != 1 else ''}...", file=sys.stderr)
+        print(file=sys.stderr)
+
+    test_vectors = generate_test_vectors(args.num_keys)
+
+    # Format output
+    if args.json:
+        output_data = {
+            "protocol": "GQS-1",
+            "seed": HEX_SEED,
+            "checksum": EXPECTED_CHECKSUM,
+            "num_vectors": len(test_vectors),
+            "vectors": test_vectors
+        }
+        output_str = json.dumps(output_data, indent=2)
+    else:
+        output_lines = []
+        if not args.quiet:
+            output_lines.append("Test Vectors:")
+            output_lines.append("-" * 60)
+
+        for i, key in enumerate(test_vectors, 1):
+            if args.quiet:
+                output_lines.append(key)
+            else:
+                output_lines.append(f"Key {i:6d}: {key}")
+
+        output_str = "\n".join(output_lines)
+
+    # Write output
+    if args.output:
+        try:
+            with open(args.output, 'w') as f:
+                f.write(output_str)
+                if not output_str.endswith('\n'):
+                    f.write('\n')
+
+            if not args.quiet:
+                print(f"✓ Output written to {args.output}", file=sys.stderr)
+        except IOError as e:
+            print(f"ERROR: Failed to write to {args.output}: {e}", file=sys.stderr)
+            sys.exit(1)
+    else:
+        print(output_str)
+        if not output_str.endswith('\n'):
+            print()
 
 
 if __name__ == "__main__":
