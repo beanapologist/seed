@@ -49,6 +49,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push image
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -62,9 +63,13 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: anchore/sbom-action@v0
         with:
+          # Use SHA tag that was just pushed
           image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           format: spdx-json
           output-file: sbom.spdx.json
+          registry-username: ${{ github.actor }}
+          registry-password: ${{ secrets.GITHUB_TOKEN }}
+          syft-version: latest
 
       - name: Upload SBOM artifact
         if: github.event_name != 'pull_request'
