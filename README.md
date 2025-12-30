@@ -131,6 +131,93 @@ for (int i = 0; i < 32; i++) {
 - **golden_seed.hex** - Hex representation (this file format)
 - **golden_seed_16.bin** - 16-byte binary seed
 - **golden_seed_32.bin** - 32-byte binary seed
+- **gqs1.py** - Golden Quantum Standard (GQS-1) test vector generator
+- **test_gqs1.py** - Unit tests for GQS-1 implementation
+
+## Golden Quantum Standard (GQS-1) Test Vectors
+
+The repository includes an implementation of the Golden Quantum Standard (GQS-1) protocol for generating deterministic test vectors for quantum key distribution testing and compliance.
+
+### Overview
+
+GQS-1 provides a standardized method for generating reproducible 128-bit cryptographic keys using:
+1. A deterministic seed (the 32-byte golden seed)
+2. Hash-DRBG ratchet mechanism for state evolution
+3. Quantum sifting simulation (basis matching)
+4. XOR folding for information-theoretic hardening
+
+### Protocol Specification
+
+#### 1. Seed Initialization
+- **Hex Seed**: `0000000000000000a8f4979b77e3f93fa8f4979b77e3f93fa8f4979b77e3f93f`
+- **SHA-256 Checksum**: `096412ca0482ab0f519bc0e4ded667475c45495047653a21aa11e2c7c578fa6f`
+
+#### 2. Hash-DRBG Ratchet
+The system state evolves deterministically using:
+```
+S_{n+1} = SHA-256(S_n || Counter)
+```
+Where `Counter` is a 4-byte big-endian integer.
+
+#### 3. Quantum Sifting
+In real quantum key distribution, Alice and Bob retain only bits where their measurement bases match. For deterministic test vectors, this is simulated by using the DRBG output directly.
+
+#### 4. Hardening via XOR Folding
+The 256-bit DRBG output is hardened into a 128-bit key by:
+- Splitting into two 128-bit halves
+- XOR-ing the halves together
+
+This provides information-theoretic security enhancement.
+
+### First 10 Test Vectors
+
+These canonical test vectors ensure cross-implementation consistency:
+
+```
+Key  1: a01611f01e8207a27c1529c3650c4838
+Key  2: 255a98839109b593c97580ce561471d7
+Key  3: f9e3d43664f3192b84d90f58ee584d83
+Key  4: 96424e78558928d84ce6caff9c0db6b6
+Key  5: b3cf328d72fabeefea0dd08e03ecf916
+Key  6: f28408d2d0346064dcaba3e12af9be41
+Key  7: 2814128f48ec28a58ecb252c061a15f9
+Key  8: 12b4c98b607be0fc17d8466b2dc8fa8d
+Key  9: f77e98348d239044998b668b312f70ed
+Key 10: 017e9869c72a529f25f8dcf1fa869b98
+```
+
+### Usage
+
+#### Generate Test Vectors
+```python
+from gqs1 import generate_test_vectors
+
+# Generate first 10 test vectors
+vectors = generate_test_vectors(10)
+for i, key in enumerate(vectors, 1):
+    print(f"Key {i}: {key}")
+```
+
+#### Run Tests
+```bash
+python3 -m unittest test_gqs1.py -v
+```
+
+#### Generate and Display
+```bash
+python3 gqs1.py
+```
+
+### Purpose
+
+The GQS-1 test vectors serve multiple purposes:
+
+1. **Compliance Testing**: Verify that different implementations of the protocol produce identical results
+2. **Interoperability**: Ensure cross-platform and cross-language compatibility
+3. **Regression Testing**: Detect unintended changes in the protocol implementation
+4. **Security Validation**: Provide known-good outputs for security audits
+
+Any implementation of GQS-1, in any programming language, should produce these exact test vectors when initialized with the same seed.
 
 ## Security
 
