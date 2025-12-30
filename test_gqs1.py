@@ -12,6 +12,7 @@ Tests validate:
 
 import unittest
 import hashlib
+from unittest.mock import patch
 from gqs1 import (
     HEX_SEED,
     EXPECTED_CHECKSUM,
@@ -212,15 +213,12 @@ class TestGQS1(unittest.TestCase):
     
     def test_invalid_seed_raises_error(self):
         """Test that invalid seed checksum raises an error."""
-        from unittest.mock import patch
-        
         # Patch the HEX_SEED constant to use an invalid seed
         with patch('gqs1.HEX_SEED', "00" * 32):
             with self.assertRaises(ValueError) as context:
                 generate_test_vectors(1)
             
             self.assertIn("checksum verification failed", str(context.exception).lower())
-
 
 
 class TestGQS1Integration(unittest.TestCase):
