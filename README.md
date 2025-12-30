@@ -43,6 +43,7 @@ with open('golden_seed_32.bin', 'rb') as f:
     seed = f.read(32)
 
 # XOR with block hash for tie-breaking
+block_hash = b'\x00' * 32  # Your block hash here
 result = bytes(a ^ b for a, b in zip(block_hash, seed))
 ```
 
@@ -53,11 +54,18 @@ result = bytes(a ^ b for a, b in zip(block_hash, seed))
 
 int main() {
     FILE *f = fopen("golden_seed_32.bin", "rb");
+    if (!f) return 1;
+    
     uint8_t seed[32];
-    fread(seed, 1, 32, f);
+    if (fread(seed, 1, 32, f) != 32) {
+        fclose(f);
+        return 1;
+    }
     fclose(f);
     
     // XOR with block hash for tie-breaking
+    uint8_t block_hash[32] = { /* your block hash */ };
+    uint8_t result[32];
     for (int i = 0; i < 32; i++) {
         result[i] = block_hash[i] ^ seed[i];
     }
@@ -71,6 +79,7 @@ use std::fs;
 
 fn main() {
     let seed = fs::read("golden_seed_32.bin").unwrap();
+    let block_hash = vec![0u8; 32];  // Your block hash here
     let result: Vec<u8> = block_hash.iter()
         .zip(seed.iter())
         .map(|(a, b)| a ^ b)
@@ -86,6 +95,7 @@ import "os"
 
 func main() {
     seed, _ := os.ReadFile("golden_seed_32.bin")
+    blockHash := make([]byte, 32)  // Your block hash here
     result := make([]byte, 32)
     for i := range seed {
         result[i] = blockHash[i] ^ seed[i]
@@ -97,6 +107,7 @@ func main() {
 ```javascript
 const fs = require('fs');
 const seed = fs.readFileSync('golden_seed_32.bin');
+const blockHash = Buffer.alloc(32);  // Your block hash here
 const result = Buffer.from(blockHash.map((b, i) => b ^ seed[i]));
 ```
 
@@ -106,6 +117,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 byte[] seed = Files.readAllBytes(Paths.get("golden_seed_32.bin"));
+byte[] blockHash = new byte[32];  // Your block hash here
 byte[] result = new byte[32];
 for (int i = 0; i < 32; i++) {
     result[i] = (byte)(blockHash[i] ^ seed[i]);
