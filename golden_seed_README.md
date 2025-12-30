@@ -4,28 +4,73 @@
 
 ## Files
 
-- `golden_seed_16.bin` - 16-byte binary file (iφ seed)
-- `golden_seed_32.bin` - 32-byte binary file (consensus extension)
-- `golden_seed.hex` - Hex text representation (human-readable reference)
+### Binary Seeds
+- `golden_seed_16.bin` - 16-byte binary file, little-endian (iφ seed)
+- `golden_seed_16_be.bin` - 16-byte binary file, big-endian (cross-platform)
+- `golden_seed_32.bin` - 32-byte binary file, little-endian (consensus extension)
+- `golden_seed_32_be.bin` - 32-byte binary file, big-endian (consensus extension)
+
+### Text & Data Formats
+- `golden_seed.hex` - Hexadecimal text representation (human-readable reference)
+- `golden_seed_16.b64` - Base64 encoded 16-byte seed
+- `golden_seed_32.b64` - Base64 encoded 32-byte seed
+- `golden_seed_16.json` - JSON format with metadata
+- `golden_seed_32.json` - JSON format with metadata
+- `golden_seed_16.csv` - CSV format for spreadsheets
+- `golden_seed_formats.txt` - Complete format reference
+
+### Documentation
+- `FORMATS.md` - Comprehensive format documentation
+- `golden_seed_README.md` - This file
+- `SECURITY.md` - Security policy and vulnerability disclosure
 
 ## Binary Representation
 
 ### 16-Byte Seed (iφ)
 ```
-00 00 00 00 00 00 00 00 3F 9D 9F D5 87 0A 8E 35
+Little-Endian: 00 00 00 00 00 00 00 00 A8 F4 97 9B 77 E3 F9 3F
+Big-Endian:    00 00 00 00 00 00 00 00 3F F9 E3 77 9B 97 F4 A8
 ```
-- Bytes 0-7: Real part = 0.0 (IEEE 754 double-precision, little-endian)
+- Bytes 0-7: Real part = 0.0 (IEEE 754 double-precision)
 - Bytes 8-15: Imaginary part = φ = (1 + √5)/2 ≈ 1.618033988749895
 
 ### 32-Byte Consensus Extension
 ```
-00 00 00 00 00 00 00 00 3F 9D 9F D5 87 0A 8E 35
-3F 9D 9F D5 87 0A 8E 35 3F 9D 9F D5 87 0A 8E 35
+Little-Endian: 00 00 00 00 00 00 00 00 A8 F4 97 9B 77 E3 F9 3F
+               A8 F4 97 9B 77 E3 F9 3F A8 F4 97 9B 77 E3 F9 3F
+
+Big-Endian:    00 00 00 00 00 00 00 00 3F F9 E3 77 9B 97 F4 A8
+               3F F9 E3 77 9B 97 F4 A8 3F F9 E3 77 9B 97 F4 A8
 ```
 - First 16 bytes: iφ (original seed)
-- Next 16 bytes: φ pattern repeated twice (anyon growth)
+- Bytes 16-23: φ pattern (anyon growth)
+- Bytes 24-31: φ pattern (anyon growth)
 
 ## Usage Examples
+
+### Quick Start - Choose Your Format
+
+**Binary (Performance)**:
+```python
+with open('golden_seed_16.bin', 'rb') as f:
+    seed = f.read(16)
+```
+
+**Base64 (Web/APIs)**:
+```python
+import base64
+seed = base64.b64decode('AAAAAAAAAACo9Jebd+P5Pw==')
+```
+
+**JSON (Configuration)**:
+```python
+import json
+with open('golden_seed_16.json') as f:
+    seed_data = json.load(f)
+    seed = bytes.fromhex(seed_data['hex'])
+```
+
+**See [FORMATS.md](FORMATS.md) for complete format documentation**
 
 ### C/C++
 ```c
