@@ -1,7 +1,7 @@
 # Universal Binary Golden Seed - Container Image
 # Provides language-agnostic access to the golden seed in containerized environments
 
-FROM alpine:3.19 AS builder
+FROM alpine:3.23 AS builder
 WORKDIR /build
 COPY golden_seed_16.bin golden_seed_32.bin golden_seed.hex ./
 RUN ls -lh
