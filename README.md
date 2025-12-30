@@ -4,6 +4,55 @@ Language-agnostic, pure machine representation
 
 **iφ = 0 + i × φ** where **φ = (1 + √5)/2 ≈ 1.618033988749895**
 
+## Installation
+
+### As a Python Package
+
+Install the `golden-quantum` package for programmatic access:
+
+```bash
+# Install from source (development mode)
+pip install -e .
+
+# Or install from PyPI (when published)
+pip install golden-quantum
+```
+
+### Standalone Scripts
+
+The repository also includes standalone CLI scripts that work without installation:
+- `universal_qkd.py` - Universal QKD Key Generator (GCP-1)
+- `gqs1.py` - Golden Quantum Standard Test Vectors (GQS-1)
+
+## Quick Start
+
+### Python Package API
+
+```python
+from gq import UniversalQKD, GQS1
+
+# Generate keys using GCP-1 (Universal QKD)
+generator = UniversalQKD()
+key = next(generator)
+print(key.hex())  # 3c732e0d04dac163a5cc2b15c7caf42c
+
+# Generate test vectors using GQS-1
+vectors = GQS1.generate_test_vectors(10)
+print(vectors[0])  # a01611f01e8207a27c1529c3650c4838
+```
+
+### Command Line Tools
+
+```bash
+# After pip install -e .
+gq-universal -n 10          # Generate 10 universal QKD keys
+gq-test-vectors -n 10       # Generate 10 GQS-1 test vectors
+
+# Or use standalone scripts
+python universal_qkd.py -n 10
+python gqs1.py -n 10
+```
+
 ## Seed Values
 
 ### 16-byte seed (iφ):
