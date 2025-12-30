@@ -78,8 +78,8 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: anchore/sbom-action@v0
         with:
-          # Use the appropriate tag based on the event type
-          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.sbom-tag.outputs.tag }}
+          # Use the first tag from build metadata (guaranteed to exist)
+          image: ${{ steps.meta.outputs.tags }}
           format: spdx-json
           output-file: sbom.spdx.json
           registry-username: ${{ github.actor }}
