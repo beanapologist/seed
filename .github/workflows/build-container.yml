@@ -58,21 +58,21 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-        - name: Wait for image to be available
-          if: github.event_name != 'pull_request'
-          run: |
-            set -e
-            IMAGE="${{ steps.meta.outputs.tags }}"
-            for i in {1..5}; do
-              if docker pull "$IMAGE"; then
-                echo "Image $IMAGE is available."
-                exit 0
-              fi
-              echo "Image not available yet. Waiting... ($i/5)"
-              sleep 10
-            done
-            echo "Image $IMAGE was not available after retries." >&2
-            exit 1
+      - name: Wait for image to be available
+        if: github.event_name != 'pull_request'
+        run: |
+          set -e
+          IMAGE="${{ steps.meta.outputs.tags }}"
+          for i in {1..5}; do
+            if docker pull "$IMAGE"; then
+              echo "Image $IMAGE is available."
+              exit 0
+            fi
+            echo "Image not available yet. Waiting... ($i/5)"
+            sleep 10
+          done
+          echo "Image $IMAGE was not available after retries." >&2
+          exit 1
 
       - name: Generate SBOM
         if: github.event_name != 'pull_request'
