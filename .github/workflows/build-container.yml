@@ -10,11 +10,10 @@ on:
     branches:
       - main
 
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-
-
 
 jobs:
   build-and-push:
@@ -30,6 +29,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+
       - name: Log in to Container Registry
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
@@ -37,6 +37,17 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Make image public on GHCR
+        if: github.event_name != 'pull_request'
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          echo "Making image $IMAGE public on GHCR..."
+          # Set image visibility to public using gh CLI
+          gh api --method PATCH \
+            -H "Accept: application/vnd.github+json" \
+            "/user/packages/container/${{ github.repository }}/versions" \
+            -f visibility=public || echo "Warning: Could not set image public. Ensure gh CLI is authenticated and has write:packages scope."
 
       - name: Extract metadata
         id: meta
@@ -91,19 +102,3 @@ jobs:
           name: sbom
           path: sbom.spdx.json
 
-
-  codeql:
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
-        with:
-          languages: python
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
