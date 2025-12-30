@@ -17,8 +17,9 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
-          # Languages covered by examples in this repo
-          languages: "javascript,python,go,cpp,java"
+          # Only include interpreted languages that don't require building
+          # Remove compiled languages (cpp, go, java) since there's no source code
+          languages: "javascript,python"
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
