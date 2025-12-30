@@ -1,0 +1,17 @@
+byte_offset,hex_value,decimal_value,description
+0,00,0,Real part (0.0) - byte 1
+1,00,0,Real part (0.0) - byte 2
+2,00,0,Real part (0.0) - byte 3
+3,00,0,Real part (0.0) - byte 4
+4,00,0,Real part (0.0) - byte 5
+5,00,0,Real part (0.0) - byte 6
+6,00,0,Real part (0.0) - byte 7
+7,00,0,Real part (0.0) - byte 8
+8,A8,168,Imaginary part (φ) - byte 1
+9,F4,244,Imaginary part (φ) - byte 2
+10,97,151,Imaginary part (φ) - byte 3
+11,9B,155,Imaginary part (φ) - byte 4
+12,77,119,Imaginary part (φ) - byte 5
+13,E3,227,Imaginary part (φ) - byte 6
+14,F9,249,Imaginary part (φ) - byte 7
+15,3F,63,Imaginary part (φ) - byte 8

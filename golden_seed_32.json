@@ -1,0 +1,13 @@
+{
+  "name": "golden_seed_32",
+  "description": "32-byte consensus extension (i\u03c6 + 2\u03c6 pattern)",
+  "format": "IEEE 754 little-endian complex + phi pattern",
+  "bytes": 32,
+  "hex": "0000000000000000A8F4979B77E3F93FA8F4979B77E3F93FA8F4979B77E3F93F",
+  "base64": "AAAAAAAAAACo9Jebd+P5P6j0l5t34/k/qPSXm3fj+T8=",
+  "components": {
+    "i\u03c6_seed": "0000000000000000A8F4979B77E3F93F",
+    "\u03c6_pattern_1": "3FF9E3779B97F4A8",
+    "\u03c6_pattern_2": "3FF9E3779B97F4A8"
+  }
+}

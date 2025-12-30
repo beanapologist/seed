@@ -1,0 +1,10 @@
+{
+  "name": "golden_seed_16",
+  "description": "16-byte golden seed (i\u03c6 representation)",
+  "format": "IEEE 754 little-endian complex",
+  "bytes": 16,
+  "real_part": 0.0,
+  "imaginary_part": 1.618033988749895,
+  "hex": "0000000000000000A8F4979B77E3F93F",
+  "base64": "AAAAAAAAAACo9Jebd+P5Pw=="
+}
