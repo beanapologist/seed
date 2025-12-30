@@ -12,7 +12,6 @@ These tests validate:
 
 import unittest
 import threading
-import time
 from collections import Counter
 from csprng import CSPRNG
 

@@ -20,7 +20,6 @@ import os
 import secrets
 import threading
 import hashlib
-import struct
 from typing import Optional, Union
 
 
