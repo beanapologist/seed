@@ -23,6 +23,7 @@ pip install golden-quantum
 The repository also includes standalone CLI scripts that work without installation:
 - `universal_qkd.py` - Universal QKD Key Generator (GCP-1)
 - `gqs1.py` - Golden Quantum Standard Test Vectors (GQS-1)
+- `verify_binary_representation.py` - Binary representation verification tool
 
 ## Quick Start
 
@@ -166,6 +167,27 @@ For more options, run:
 ```bash
 python gqs1.py --help
 python universal_qkd.py --help
+```
+
+**Binary Representation Verification:**
+
+Verify binary representations of seed values and their manifested forms:
+
+```bash
+# Run verification for k=11 with seed_11=1234567891011
+python verify_binary_representation.py
+```
+
+This tool demonstrates the relationship between seed values and their manifested binary forms using the formula:
+```
+manifested = (seed * 8) + k
+```
+
+Example output:
+```
+Seed_11 Bit Length: 41
+Manifested Bit Length: 44
+Binary Tap (k=11): 0b10001111101110001111110110000100001000100011
 ```
 
 ### C/C++
