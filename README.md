@@ -39,21 +39,23 @@ pip install golden-quantum
 
 ```
 seed/
-├── qkd/                    # Quantum Key Distribution algorithms
+├── qkd/                    # Quantum Key Distribution algorithms (importable package)
 │   ├── algorithms/         # Core QKD implementations
 │   │   ├── universal_qkd.py       # Universal QKD Key Generator (GCP-1)
 │   │   ├── gqs1.py                # Golden Quantum Standard (GQS-1)
 │   │   └── quantum_key_generator.py  # QKGS Service
 │   └── utils/             # QKD utility functions
-├── checksum/              # Checksum verification tools
+├── checksum/              # Checksum verification tools (importable package)
 │   └── verify_binary_representation.py
-├── formats/               # Golden seed format examples
+├── formats/               # Golden seed format examples (importable package)
 │   ├── golden_seed.hex    # Hex representation
 │   ├── golden_seed_16.bin # 16-byte binary
 │   └── golden_seed_32.bin # 32-byte binary
 ├── examples/              # Example implementations
 └── releases/              # Multi-language release builds
 ```
+
+**Note:** All directories (`qkd`, `checksum`, `formats`) are now importable Python packages with `__init__.py` files.
 
 ### Standalone Scripts
 
@@ -68,6 +70,8 @@ The repository includes standalone CLI scripts that work without installation:
 
 ### Python Package API
 
+**Option 1: Using the installed package (recommended):**
+
 ```python
 from gq import UniversalQKD, GQS1
 
@@ -79,6 +83,23 @@ print(key.hex())  # 3c732e0d04dac163a5cc2b15c7caf42c
 # Generate test vectors using GQS-1
 vectors = GQS1.generate_test_vectors(10)
 print(vectors[0])  # a01611f01e8207a27c1529c3650c4838
+```
+
+**Option 2: Importing from repository directories:**
+
+```python
+import sys
+sys.path.insert(0, '/path/to/seed')
+
+from qkd.algorithms.universal_qkd import universal_qkd_generator
+from qkd.algorithms.gqs1 import generate_test_vectors
+from checksum.verify_binary_representation import binary_fusion_tap
+from formats import GOLDEN_SEED_16_BIN, GOLDEN_SEED_32_BIN
+
+# Use the functions
+generator = universal_qkd_generator()
+key = next(generator)
+print(key.hex())
 ```
 
 ### Command Line Tools

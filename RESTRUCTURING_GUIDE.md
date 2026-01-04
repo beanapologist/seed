@@ -63,7 +63,7 @@ from quantum_key_generator import QuantumKeyGenerator
 from verify_binary_representation import binary_fusion_tap
 ```
 
-**New:**
+**New (as packages - add repo to path):**
 ```python
 import sys
 sys.path.insert(0, '/path/to/seed')
@@ -76,7 +76,19 @@ from checksum.verify_binary_representation import binary_fusion_tap
 
 **Or using the Python package (preferred):**
 ```python
+# After: pip install -e /path/to/seed
 from gq import UniversalQKD, GQS1
+```
+
+**For golden seed file access:**
+```python
+import sys
+sys.path.insert(0, '/path/to/seed')
+
+from formats import GOLDEN_SEED_16_BIN, GOLDEN_SEED_32_BIN
+
+with open(GOLDEN_SEED_32_BIN, 'rb') as f:
+    seed = f.read()
 ```
 
 ### For Golden Seed Files
