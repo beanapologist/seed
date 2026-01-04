@@ -135,7 +135,7 @@ jobs:
         import hashlib
 
         # Verify golden_seed_16.bin
-        with open('golden_seed_16.bin', 'rb') as f:
+        with open('formats/golden_seed_16.bin', 'rb') as f:
             data = f.read()
         checksum = hashlib.sha256(data).hexdigest()
         expected = '87f829d95b15b08db9e5d84ff06665d077b267cfc39a5fa13a9e002b3e4239c5'
@@ -143,7 +143,7 @@ jobs:
         print(f'✓ golden_seed_16.bin: {checksum}')
 
         # Verify golden_seed_32.bin
-        with open('golden_seed_32.bin', 'rb') as f:
+        with open('formats/golden_seed_32.bin', 'rb') as f:
             data = f.read()
         checksum = hashlib.sha256(data).hexdigest()
         expected = '096412ca0482ab0f519bc0e4ded667475c45495047653a21aa11e2c7c578fa6f'
@@ -155,7 +155,7 @@ jobs:
 
     - name: Run checksum validation script
       run: |
-        bash scripts/validate_checksums.sh
+        cd formats && bash ../scripts/validate_checksums.sh
 
   coverage:
     name: Code Coverage
