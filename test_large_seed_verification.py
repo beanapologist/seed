@@ -376,7 +376,7 @@ class TestLargeSeedVerification(unittest.TestCase):
             for result in results:
                 self.assertTrue(result['meets_size_requirement'])
             
-            # Verify with min_bits=1000 (none should pass since max is 1600 bits)
+            # Verify with min_bits=1000 (only the largest should pass: 200 bytes = 1600 bits)
             results = verify_batch(temp_files, min_bits=1000)
             # 50 bytes = 400 bits (fail), 100 bytes = 800 bits (fail), 200 bytes = 1600 bits (pass)
             self.assertFalse(results[0]['meets_size_requirement'])
