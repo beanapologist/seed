@@ -19,7 +19,9 @@ import tempfile
 import unittest
 import hashlib
 import sys
-sys.path.insert(0, '/home/runner/work/seed/seed')
+import os
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 from qkd.algorithms.universal_qkd import (
     HEX_SEED,
     EXPECTED_CHECKSUM,

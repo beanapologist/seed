@@ -20,7 +20,9 @@ import unittest
 import hashlib
 from unittest.mock import patch
 import sys
-sys.path.insert(0, '/home/runner/work/seed/seed')
+import os
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 from qkd.algorithms.gqs1 import (
     HEX_SEED,
     EXPECTED_CHECKSUM,

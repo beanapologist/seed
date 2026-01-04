@@ -11,7 +11,9 @@ Tests validate:
 
 import unittest
 import sys
-sys.path.insert(0, '/home/runner/work/seed/seed')
+import os
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 from qkd.algorithms.quantum_key_generator import QuantumKeyGenerator
 
 

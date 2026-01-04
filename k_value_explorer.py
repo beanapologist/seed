@@ -9,7 +9,9 @@ Shows how seed generation, tap states, and ZPE overflow evolve with k.
 import argparse
 import json
 import sys
-sys.path.insert(0, '/home/runner/work/seed/seed')
+import os
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from typing import List, Dict
 from checksum.verify_binary_representation import binary_fusion_tap, calculate_checksum
 
