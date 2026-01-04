@@ -13,7 +13,7 @@ from datetime import datetime
 from language_compiler import BinaryFusionCompiler
 
 
-VERSION = "1.0.0"
+VERSION = "2.0.0"
 RELEASE_DATE = datetime.now().strftime("%Y-%m-%d")
 
 

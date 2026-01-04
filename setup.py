@@ -15,7 +15,7 @@ long_description = (this_directory / "README.md").read_text(encoding='utf-8')
 
 setup(
     name="golden-quantum",
-    version="1.0.0",
+    version="2.0.0",
     description="Post-Quantum Secure Key Generation - Deterministic Keys with Verified Checksums, aligned with NIST PQC standards (Kyber, Dilithium, FrodoKEM) - GCP-1 & GQS-1",
     long_description=long_description,
     long_description_content_type="text/markdown",

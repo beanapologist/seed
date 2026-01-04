@@ -1,0 +1,9 @@
+{
+  "name": "binary-fusion-tap",
+  "version": "2.0.0",
+  "description": "Binary Fusion Tap quantum-inspired key generation",
+  "main": "binary_fusion_tap.js",
+  "scripts": {
+    "start": "node binary_fusion_tap.js"
+  }
+}
