@@ -90,13 +90,136 @@ def verify_file(filepath, expected_sha256):
 
 ## NIST Post-Quantum Cryptography (PQC) Alignment
 
-This project is designed to integrate with NIST-approved Post-Quantum Cryptography algorithms for quantum-resistant security:
+This project implements **production-ready hybrid key generation** aligned with NIST-approved Post-Quantum Cryptography standards:
 
-- **CRYSTALS-Kyber**: Key Encapsulation Mechanism (NIST PQC Standard)
-- **CRYSTALS-Dilithium**: Digital Signature Algorithm (NIST PQC Standard)
-- **FrodoKEM**: Conservative lattice-based KEM (NIST PQC Alternative)
+### Supported NIST PQC Standards
 
-The deterministic key generation can serve as seed material for PQC implementations, providing quantum-resistant security for long-term data protection.
+- **NIST FIPS 203 (ML-KEM/Kyber)**: Key Encapsulation Mechanism
+  - Kyber-512 (Level 1), Kyber-768 (Level 3), Kyber-1024 (Level 5)
+  - Provides IND-CCA2 security under Module-LWE assumption
+  
+- **NIST FIPS 204 (ML-DSA/Dilithium)**: Digital Signature Algorithm
+  - Dilithium2 (Level 2), Dilithium3 (Level 3), Dilithium5 (Level 5)
+  - Provides EUF-CMA security under Module-LWE and Module-SIS assumptions
+  
+- **NIST FIPS 205 (SLH-DSA/SPHINCS+)**: Stateless Hash-Based Signatures
+  - SPHINCS+-128f, SPHINCS+-192f, SPHINCS+-256f
+  - Provides EUF-CMA security with only hash function security assumptions
+
+### Hybrid Security Model
+
+The system implements a **defense-in-depth approach**:
+
+1. **Classical Component**: Deterministic keys from GCP-1 protocol (SHA-256 based)
+   - Provides 128-bit quantum security against Grover's algorithm
+   - Enables deterministic reproducibility for consensus systems
+   
+2. **PQC Component**: Quantum-resistant seed material for NIST algorithms
+   - Full protection against Shor's and Grover's quantum attacks
+   - Forward-compatible with post-quantum transition
+   
+3. **Hybrid Security**: System remains secure as long as **either** component is unbroken
+
+### PQC Best Practices
+
+#### For Users
+
+1. **Use Hybrid Approach**: Always combine deterministic keys with PQC seeds
+   ```python
+   from gq import generate_kyber_seed
+   det_key, pqc_seed = generate_kyber_seed(level=768, context=b"KEYGEN")
+   ```
+
+2. **Validate Seed Quality**: Check entropy before using PQC seeds
+   ```python
+   from gq import validate_pqc_seed_entropy
+   metrics = validate_pqc_seed_entropy(pqc_seed)
+   assert metrics['passes_basic_checks'], "Seed quality check failed"
+   ```
+
+3. **Use Context Binding**: Bind keys to specific use cases
+   ```python
+   key_exchange_seed = generate_kyber_seed(level=768, context=b"KEY_EXCHANGE")
+   signature_seed = generate_dilithium_seed(level=3, context=b"SIGNATURE")
+   ```
+
+4. **Choose Appropriate Security Levels**:
+   - Level 1 (Kyber-512, SPHINCS+-128f): Standard security
+   - Level 3 (Kyber-768, Dilithium3): **Recommended** for most applications
+   - Level 5 (Kyber-1024, Dilithium5): High security / long-term protection
+
+5. **Test Against NIST Vectors**: Regularly validate compliance
+   ```bash
+   python -m unittest test_nist_pqc_vectors -v
+   ```
+
+6. **Use Certified Implementations**: Integrate with liboqs, PQClean, or other certified libraries
+
+7. **Implement Key Rotation**: Follow NIST guidelines for key lifecycle management
+
+#### For Contributors
+
+1. **Maintain NIST Compliance**: All PQC-related changes must pass compliance tests
+   ```bash
+   python -m unittest test_nist_pqc -v
+   python -m unittest test_nist_pqc_vectors -v
+   ```
+
+2. **Validate Entropy Quality**: Ensure all PQC seeds meet minimum entropy requirements
+   - Shannon entropy ≥ 4.0 bits/byte for 32-byte seeds
+   - Byte diversity ≥ 10%
+
+3. **Document Security Properties**: Clearly state security assumptions and guarantees
+
+4. **Follow NIST Guidelines**: 
+   - NIST SP 800-208 for hash-based signatures
+   - NIST FIPS 203-205 for algorithm parameters
+   
+5. **Test Determinism**: Verify reproducibility for consensus applications
+
+6. **Check CI/CD**: Ensure NIST PQC compliance workflow passes
+   - `.github/workflows/nist-pqc-compliance.yml`
+
+### Security Testing
+
+The project includes comprehensive security testing:
+
+```bash
+# Run all security tests
+python -m unittest discover -p "test_*.py" -v
+
+# Run NIST PQC specific tests
+python -m unittest test_nist_pqc test_nist_pqc_vectors -v
+
+# Check entropy quality
+python -c "
+from gq import generate_hybrid_key, PQCAlgorithm, validate_pqc_seed_entropy
+_, seed = generate_hybrid_key(PQCAlgorithm.KYBER768)
+metrics = validate_pqc_seed_entropy(seed)
+print(f'Entropy: {metrics[\"shannon_entropy\"]:.2f} bits/byte')
+print(f'Quality check: {\"PASS\" if metrics[\"passes_basic_checks\"] else \"FAIL\"}')
+"
+```
+
+### Known Security Considerations
+
+1. **Quantum Security Timeline**: While PQC algorithms are standardized, quantum computers capable of breaking classical crypto don't yet exist at scale. The hybrid approach provides protection now and in the future.
+
+2. **Implementation Security**: This library provides **seed material** for PQC algorithms. Actual key generation, encryption, and signing must use certified PQC implementations (liboqs, PQClean, etc.).
+
+3. **Side-Channel Attacks**: For hardware security modules (HSMs) and secure enclaves, ensure PQC implementations are resistant to timing and power analysis attacks.
+
+4. **Key Management**: Follow NIST SP 800-57 for key management best practices in hybrid systems.
+
+5. **Algorithm Agility**: Design systems to allow algorithm upgrades as NIST standards evolve.
+
+### Reporting Security Issues
+
+For security vulnerabilities in NIST PQC implementation:
+1. Check if issue affects hybrid key generation or just integration patterns
+2. Include NIST standard reference (FIPS 203, 204, or 205)
+3. Provide test case demonstrating the issue
+4. Suggest fixes aligned with NIST guidelines
 
 ## Release Signing
 

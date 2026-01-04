@@ -38,21 +38,102 @@ pip install golden-quantum
 
 ## NIST Post-Quantum Cryptography (PQC) Integration
 
-This system is designed to integrate seamlessly with **NIST-approved Post-Quantum Cryptography** algorithms:
+This system provides **production-ready hybrid key generation** that combines deterministic keys with **NIST-approved Post-Quantum Cryptography** algorithms:
 
 ### Supported NIST PQC Algorithms
-- **CRYSTALS-Kyber** - Key Encapsulation Mechanism (KEM) for secure key exchange
-- **CRYSTALS-Dilithium** - Digital signature algorithm for authentication
-- **FrodoKEM** - Conservative lattice-based KEM for long-term security
+
+#### CRYSTALS-Kyber (ML-KEM) - NIST FIPS 203
+Key Encapsulation Mechanism for secure key exchange:
+- **Kyber-512** (Security Level 1) - 32-byte seed
+- **Kyber-768** (Security Level 3) - 32-byte seed
+- **Kyber-1024** (Security Level 5) - 32-byte seed
+
+#### CRYSTALS-Dilithium (ML-DSA) - NIST FIPS 204
+Digital signature algorithm for authentication:
+- **Dilithium2** (Security Level 2) - 32-byte seed
+- **Dilithium3** (Security Level 3) - 32-byte seed
+- **Dilithium5** (Security Level 5) - 32-byte seed
+
+#### SPHINCS+ (SLH-DSA) - NIST FIPS 205
+Stateless hash-based signature scheme:
+- **SPHINCS+-128f** (Security Level 1) - 48-byte seed
+- **SPHINCS+-192f** (Security Level 3) - 64-byte seed
+- **SPHINCS+-256f** (Security Level 5) - 64-byte seed
+
+### Hybrid Key Generation
+
+Generate quantum-resistant hybrid keys combining GCP-1 deterministic keys with NIST PQC seed material:
+
+```python
+from gq import generate_kyber_seed, generate_dilithium_seed, generate_sphincs_seed
+
+# Generate Kyber-768 hybrid key
+det_key, pqc_seed = generate_kyber_seed(level=768, context=b"KEYGEN")
+# det_key: 16 bytes - Deterministic key from GCP-1
+# pqc_seed: 32 bytes - PQC-compatible seed for Kyber-768
+
+# Generate Dilithium3 hybrid key
+det_key, pqc_seed = generate_dilithium_seed(level=3, context=b"SIGN")
+
+# Generate SPHINCS+-128f hybrid key
+det_key, pqc_seed = generate_sphincs_seed(level=128, context=b"HASH_SIGN")
+```
+
+### Advanced Usage
+
+```python
+from gq import (
+    PQCAlgorithm,
+    generate_hybrid_key,
+    generate_hybrid_key_stream,
+    validate_pqc_seed_entropy,
+    get_algorithm_info
+)
+
+# Generate hybrid key for specific algorithm
+det_key, pqc_seed = generate_hybrid_key(
+    PQCAlgorithm.KYBER768,
+    context=b"SESSION_KEY"
+)
+
+# Generate multiple hybrid keys
+keys = generate_hybrid_key_stream(
+    PQCAlgorithm.DILITHIUM3,
+    count=10,
+    context=b"BATCH_SIGN"
+)
+
+# Validate entropy quality
+metrics = validate_pqc_seed_entropy(pqc_seed)
+print(f"Shannon entropy: {metrics['shannon_entropy']:.2f} bits/byte")
+print(f"Passes checks: {metrics['passes_basic_checks']}")
+
+# Get algorithm information
+info = get_algorithm_info(PQCAlgorithm.KYBER768)
+print(f"Security level: {info['security_level']}")
+print(f"Seed length: {info['seed_length']} bytes")
+```
+
+### Security Model
+
+The hybrid approach provides **defense-in-depth**:
+1. **Classical Security**: Deterministic keys from GCP-1 protocol using SHA-256
+2. **Quantum Resistance**: PQC seed material for NIST-approved algorithms
+3. **Forward Compatibility**: Ready for post-quantum transition
+
+Security holds as long as **either** component remains secure against attacks.
 
 ### Integration Points
-The deterministic key generation can serve as:
+The hybrid key generation can serve as:
 1. **Seed Material** for PQC key generation functions
 2. **Entropy Source** for hybrid classical/post-quantum systems
 3. **Deterministic Tie-Breaking** in consensus protocols using PQC signatures
 4. **Key Derivation** foundation for PQC-secured communication channels
 
-For implementation examples integrating with NIST PQC algorithms, see the `examples/` directory.
+For detailed implementation examples, see:
+- `examples/nist_pqc_integration.md` - Integration guide
+- `tests/nist_pqc_test_vectors.json` - NIST test vectors
+- `test_nist_pqc.py` - Comprehensive test suite
 
 ## Repository Structure
 
