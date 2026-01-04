@@ -35,6 +35,18 @@ from .gqs1 import (
     GQS1,
 )
 
+from .nist_pqc import (
+    PQCAlgorithm,
+    PQCSecurityLevel,
+    generate_hybrid_key,
+    generate_hybrid_key_stream,
+    generate_kyber_seed,
+    generate_dilithium_seed,
+    generate_sphincs_seed,
+    validate_pqc_seed_entropy,
+    get_algorithm_info,
+)
+
 __all__ = [
     "UniversalQKD",
     "generate_universal_keys",
@@ -42,6 +54,16 @@ __all__ = [
     "generate_gqs1_vectors",
     "HEX_SEED",
     "EXPECTED_CHECKSUM",
+    # NIST PQC
+    "PQCAlgorithm",
+    "PQCSecurityLevel",
+    "generate_hybrid_key",
+    "generate_hybrid_key_stream",
+    "generate_kyber_seed",
+    "generate_dilithium_seed",
+    "generate_sphincs_seed",
+    "validate_pqc_seed_entropy",
+    "get_algorithm_info",
 ]
 
 __version__ = "1.0.0"
