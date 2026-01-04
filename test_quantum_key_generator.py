@@ -10,7 +10,9 @@ Tests validate:
 """
 
 import unittest
-from quantum_key_generator import QuantumKeyGenerator
+import sys
+sys.path.insert(0, '/home/runner/work/seed/seed')
+from qkd.algorithms.quantum_key_generator import QuantumKeyGenerator
 
 
 class TestQuantumKeyGenerator(unittest.TestCase):

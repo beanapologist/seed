@@ -18,8 +18,10 @@ import hashlib
 import secrets
 import json
 import argparse
+import sys
+sys.path.insert(0, '/home/runner/work/seed/seed')
 from typing import List, Dict, Optional
-from verify_binary_representation import binary_fusion_tap, calculate_checksum
+from checksum.verify_binary_representation import binary_fusion_tap, calculate_checksum
 
 
 class QuantumKeyGenerator:

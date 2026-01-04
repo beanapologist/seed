@@ -19,7 +19,9 @@ import tempfile
 import unittest
 import hashlib
 from unittest.mock import patch
-from gqs1 import (
+import sys
+sys.path.insert(0, '/home/runner/work/seed/seed')
+from qkd.algorithms.gqs1 import (
     HEX_SEED,
     EXPECTED_CHECKSUM,
     verify_seed_checksum,
@@ -256,7 +258,7 @@ class TestGQS1CLI(unittest.TestCase):
     def run_cli(self, args):
         """Helper method to run CLI and capture output."""
         result = subprocess.run(
-            [sys.executable, "gqs1.py"] + args,
+            [sys.executable, "qkd/algorithms/gqs1.py"] + args,
             capture_output=True,
             text=True
         )

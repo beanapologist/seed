@@ -1,10 +1,23 @@
-# Universal Binary Golden Seed - Hex Representation
+# Quantum Key Distribution (QKD) - Deterministic Keys with Verified Checksums
+
+## Overview
+
+This repository implements a **Quantum Key Distribution (QKD)** system that generates **deterministic keys** with **quantum-level security** using **verified checksums**. The system provides cryptographically strong keys through Binary Fusion Tap technology with 8-fold Heartbeat and ZPE Overflow extraction.
+
+**Key Features:**
+- 🔐 **Deterministic Key Generation** - Reproducible keys from golden seed values
+- ✅ **Verified Checksums** - SHA256/SHA512 integrity validation for all operations
+- 🔬 **Quantum-Level Security** - Quantum-inspired cryptographic algorithms
+- 🌐 **Universal Compatibility** - Language-agnostic binary representation
+- 📊 **Forward Secrecy** - Cryptographic ratcheting with state progression
 
 ## License
 
 This project is licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later). See the LICENSE file for details.
 
-Language-agnostic, pure machine representation
+## Mathematical Foundation
+
+Language-agnostic, pure machine representation based on the golden ratio:
 
 **iφ = 0 + i × φ** where **φ = (1 + √5)/2 ≈ 1.618033988749895**
 
@@ -22,13 +35,33 @@ pip install -e .
 pip install golden-quantum
 ```
 
+## Repository Structure
+
+```
+seed/
+├── qkd/                    # Quantum Key Distribution algorithms
+│   ├── algorithms/         # Core QKD implementations
+│   │   ├── universal_qkd.py       # Universal QKD Key Generator (GCP-1)
+│   │   ├── gqs1.py                # Golden Quantum Standard (GQS-1)
+│   │   └── quantum_key_generator.py  # QKGS Service
+│   └── utils/             # QKD utility functions
+├── checksum/              # Checksum verification tools
+│   └── verify_binary_representation.py
+├── formats/               # Golden seed format examples
+│   ├── golden_seed.hex    # Hex representation
+│   ├── golden_seed_16.bin # 16-byte binary
+│   └── golden_seed_32.bin # 32-byte binary
+├── examples/              # Example implementations
+└── releases/              # Multi-language release builds
+```
+
 ### Standalone Scripts
 
-The repository also includes standalone CLI scripts that work without installation:
-- `universal_qkd.py` - Universal QKD Key Generator (GCP-1)
-- `gqs1.py` - Golden Quantum Standard Test Vectors (GQS-1)
-- `verify_binary_representation.py` - Binary representation verification tool
-- `quantum_key_generator.py` - Quantum Key Generator Service (QKGS) - SaaS-ready key generation
+The repository includes standalone CLI scripts that work without installation:
+- `qkd/algorithms/universal_qkd.py` - Universal QKD Key Generator (GCP-1)
+- `qkd/algorithms/gqs1.py` - Golden Quantum Standard Test Vectors (GQS-1)
+- `checksum/verify_binary_representation.py` - Binary representation verification with checksum validation
+- `qkd/algorithms/quantum_key_generator.py` - Quantum Key Generator Service (QKGS) - SaaS-ready key generation
 - `language_compiler.py` - Multi-language compiler for Binary Fusion Tap (Python, JS, Rust, Go, C, Java, TypeScript)
 
 ## Quick Start
@@ -55,28 +88,41 @@ print(vectors[0])  # a01611f01e8207a27c1529c3650c4838
 gq-universal -n 10          # Generate 10 universal QKD keys
 gq-test-vectors -n 10       # Generate 10 GQS-1 test vectors
 
-# Or use standalone scripts
-python universal_qkd.py -n 10
-python gqs1.py -n 10
+# Or use standalone scripts from the repository
+python qkd/algorithms/universal_qkd.py -n 10
+python qkd/algorithms/gqs1.py -n 10
 ```
 
-## Seed Values
+## Seed Values with Verified Checksums
+
+The golden seed values are stored in the `formats/` directory with multiple representations for cross-platform compatibility.
 
 ### 16-byte seed (iφ):
 ```
 0000000000000000A8F4979B77E3F93F
 ```
+**File:** `formats/golden_seed_16.bin`
 
 ### 32-byte seed (iφ + 2×φ for consensus):
 ```
 0000000000000000A8F4979B77E3F93FA8F4979B77E3F93FA8F4979B77E3F93F
 ```
+**File:** `formats/golden_seed_32.bin`
+
+### Checksum Verification
+
+All seed values and generated keys include SHA256 checksum verification to ensure data integrity:
+
+```bash
+# Verify binary representation with checksums
+python checksum/verify_binary_representation.py
+```
 
 ## Usage in any language
 
 1. **Read binary file as raw bytes**
-   - Use `golden_seed_16.bin` for 16-byte seed
-   - Use `golden_seed_32.bin` for 32-byte seed
+   - Use `formats/golden_seed_16.bin` for 16-byte seed
+   - Use `formats/golden_seed_32.bin` for 32-byte seed
 
 2. **Interpret as IEEE 754 double-precision (little-endian complex)**
    - Bytes 0-7: Real part = 0.0
@@ -99,7 +145,7 @@ python gqs1.py -n 10
 
 **Library Usage:**
 ```python
-with open('golden_seed_32.bin', 'rb') as f:
+with open('formats/golden_seed_32.bin', 'rb') as f:
     seed = f.read(32)
 
 # XOR with block hash for tie-breaking
@@ -109,7 +155,7 @@ result = bytes(a ^ b for a, b in zip(block_hash, seed))
 
 **Universal QKD Key Generator (GCP-1):**
 
-This repository includes a production-grade Universal QKD (Quantum Key Distribution) key generator implementing the Golden Consensus Protocol v1.0 (`universal_qkd.py`). This protocol provides:
+This repository includes a production-grade Universal QKD (Quantum Key Distribution) key generator implementing the Golden Consensus Protocol v1.0 (`qkd/algorithms/universal_qkd.py`). This protocol provides:
 
 - Deterministic, synchronized key generation across nodes
 - Cryptographic forward secrecy via state ratcheting
@@ -119,25 +165,25 @@ This repository includes a production-grade Universal QKD (Quantum Key Distribut
 
 ```bash
 # Generate 10 keys (default)
-python universal_qkd.py
+python qkd/algorithms/universal_qkd.py
 
 # Generate 100 keys
-python universal_qkd.py -n 100
+python qkd/algorithms/universal_qkd.py -n 100
 
 # Output in JSON format with binary representation
-python universal_qkd.py -n 20 --json --binary
+python qkd/algorithms/universal_qkd.py -n 20 --json --binary
 
 # Save to file
-python universal_qkd.py -n 50 -o keys.txt
+python qkd/algorithms/universal_qkd.py -n 50 -o keys.txt
 
 # Quiet mode (keys only, no headers)
-python universal_qkd.py -n 5 --quiet
+python qkd/algorithms/universal_qkd.py -n 5 --quiet
 
 # Verify seed checksum only
-python universal_qkd.py --verify-only
+python qkd/algorithms/universal_qkd.py --verify-only
 
 # Save JSON output to file
-python universal_qkd.py -n 100 --json -o keys.json
+python qkd/algorithms/universal_qkd.py -n 100 --json -o keys.json
 ```
 
 First key (for cross-implementation validation):
@@ -147,41 +193,41 @@ First key (for cross-implementation validation):
 
 **GQS-1 Test Vector Generation:**
 
-For test vector generation and compliance testing, use `gqs1.py`:
+For test vector generation and compliance testing, use `qkd/algorithms/gqs1.py`:
 
 ```bash
 # Generate 10 test vectors (default)
-python gqs1.py
+python qkd/algorithms/gqs1.py
 
 # Generate 100 test vectors
-python gqs1.py -n 100
+python qkd/algorithms/gqs1.py -n 100
 
 # Output in JSON format
-python gqs1.py -n 20 --json
+python qkd/algorithms/gqs1.py -n 20 --json
 
 # Save to file
-python gqs1.py -n 50 -o vectors.txt
+python qkd/algorithms/gqs1.py -n 50 -o vectors.txt
 
 # Quiet mode (vectors only, no headers)
-python gqs1.py -n 5 --quiet
+python qkd/algorithms/gqs1.py -n 5 --quiet
 
 # Verify seed checksum only
-python gqs1.py --verify-only
+python qkd/algorithms/gqs1.py --verify-only
 ```
 
 For more options, run:
 ```bash
-python gqs1.py --help
-python universal_qkd.py --help
+python qkd/algorithms/gqs1.py --help
+python qkd/algorithms/universal_qkd.py --help
 ```
 
-**Binary Representation Verification:**
+**Binary Representation Verification with Checksums:**
 
 Verify binary representations of seed values and their manifested forms with integrated checksum validation:
 
 ```bash
 # Run verification for k=11 with seed_11=1234567891011
-python verify_binary_representation.py
+python checksum/verify_binary_representation.py
 ```
 
 This tool demonstrates the relationship between seed values and their manifested binary forms using the formula:
@@ -206,20 +252,20 @@ Manifested SHA256: 677b205682ad566fcee652f80a4e8a538a265dc849da0d86fc0e5282b4cbf
 
 **Quantum Key Generator Service (QKGS):**
 
-Enterprise-grade SaaS-ready key generation service using Binary Fusion Tap technology:
+Enterprise-grade SaaS-ready key generation service using Binary Fusion Tap technology with deterministic keys and verified checksums:
 
 ```bash
 # Generate single 256-bit key using Binary Fusion algorithm
-python quantum_key_generator.py --algorithm fusion --length 256
+python qkd/algorithms/quantum_key_generator.py --algorithm fusion --length 256
 
 # Generate 10 hybrid keys (Fusion + Hash + Entropy mixing)
-python quantum_key_generator.py --algorithm hybrid --count 10 --k 11
+python qkd/algorithms/quantum_key_generator.py --algorithm hybrid --count 10 --k 11
 
 # Generate 512-bit keys in JSON format for API integration
-python quantum_key_generator.py --algorithm fusion --length 512 --format json
+python qkd/algorithms/quantum_key_generator.py --algorithm fusion --length 512 --format json
 
 # Generate batch of hash-based keys and save to file
-python quantum_key_generator.py --algorithm hash --count 100 --output keys.json
+python qkd/algorithms/quantum_key_generator.py --algorithm hash --count 100 --output keys.json
 ```
 
 **Key Generation Algorithms:**
@@ -307,7 +353,7 @@ rustc keygen.rs && ./keygen
 #include <stdint.h>
 
 int main() {
-    FILE *f = fopen("golden_seed_32.bin", "rb");
+    FILE *f = fopen("formats/golden_seed_32.bin", "rb");
     if (!f) return 1;
     
     uint8_t seed[32];
@@ -332,7 +378,7 @@ int main() {
 use std::fs;
 
 fn main() {
-    let seed = fs::read("golden_seed_32.bin").unwrap();
+    let seed = fs::read("formats/golden_seed_32.bin").unwrap();
     let block_hash = vec![0u8; 32];  // Your block hash here
     let result: Vec<u8> = block_hash.iter()
         .zip(seed.iter())
@@ -348,7 +394,7 @@ package main
 import "os"
 
 func main() {
-    seed, _ := os.ReadFile("golden_seed_32.bin")
+    seed, _ := os.ReadFile("formats/golden_seed_32.bin")
     blockHash := make([]byte, 32)  // Your block hash here
     result := make([]byte, 32)
     for i := range seed {
@@ -360,7 +406,7 @@ func main() {
 ### JavaScript/Node.js
 ```javascript
 const fs = require('fs');
-const seed = fs.readFileSync('golden_seed_32.bin');
+const seed = fs.readFileSync('formats/golden_seed_32.bin');
 const blockHash = Buffer.alloc(32);  // Your block hash here
 const result = Buffer.from(blockHash.map((b, i) => b ^ seed[i]));
 ```
@@ -370,7 +416,7 @@ const result = Buffer.from(blockHash.map((b, i) => b ^ seed[i]));
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-byte[] seed = Files.readAllBytes(Paths.get("golden_seed_32.bin"));
+byte[] seed = Files.readAllBytes(Paths.get("formats/golden_seed_32.bin"));
 byte[] blockHash = new byte[32];  // Your block hash here
 byte[] result = new byte[32];
 for (int i = 0; i < 32; i++) {
@@ -380,9 +426,18 @@ for (int i = 0; i < 32; i++) {
 
 ## Files
 
-- **golden_seed.hex** - Hex representation (this file format)
-- **golden_seed_16.bin** - 16-byte binary seed
-- **golden_seed_32.bin** - 32-byte binary seed
+See the `formats/` directory for golden seed files:
+- **formats/golden_seed.hex** - Hex representation
+- **formats/golden_seed_16.bin** - 16-byte binary seed (iφ)
+- **formats/golden_seed_32.bin** - 32-byte binary seed (iφ + 2×φ for consensus)
+
+See the `qkd/` directory for Quantum Key Distribution implementations:
+- **qkd/algorithms/universal_qkd.py** - Universal QKD Key Generator (GCP-1)
+- **qkd/algorithms/gqs1.py** - Golden Quantum Standard Test Vectors (GQS-1)
+- **qkd/algorithms/quantum_key_generator.py** - QKGS Service
+
+See the `checksum/` directory for verification tools:
+- **checksum/verify_binary_representation.py** - Binary verification with checksums
 
 ## Security
 

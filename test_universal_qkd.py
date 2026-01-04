@@ -18,7 +18,9 @@ import sys
 import tempfile
 import unittest
 import hashlib
-from universal_qkd import (
+import sys
+sys.path.insert(0, '/home/runner/work/seed/seed')
+from qkd.algorithms.universal_qkd import (
     HEX_SEED,
     EXPECTED_CHECKSUM,
     verify_seed_checksum,
@@ -287,7 +289,7 @@ class TestUniversalQKDCLI(unittest.TestCase):
     def run_cli(self, args):
         """Helper method to run CLI and capture output."""
         result = subprocess.run(
-            [sys.executable, "universal_qkd.py"] + args,
+            [sys.executable, "qkd/algorithms/universal_qkd.py"] + args,
             capture_output=True,
             text=True
         )

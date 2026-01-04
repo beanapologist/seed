@@ -1,8 +1,8 @@
 """
 Golden Quantum (GQ) Package Setup
 
-Production-grade cryptographic package implementing the Golden Consensus Protocol (GCP-1)
-and Golden Quantum Standard (GQS-1) for deterministic key generation.
+Production-grade Quantum Key Distribution (QKD) package implementing the Golden Consensus Protocol (GCP-1)
+and Golden Quantum Standard (GQS-1) for deterministic key generation with verified checksums and quantum-level security.
 """
 
 from setuptools import setup, find_packages
@@ -15,7 +15,7 @@ long_description = (this_directory / "README.md").read_text(encoding='utf-8')
 setup(
     name="golden-quantum",
     version="1.0.0",
-    description="Universal Golden Seed Consensus Protocol (GCP-1 & GQS-1)",
+    description="Quantum Key Distribution (QKD) - Deterministic Keys with Verified Checksums and Quantum-Level Security (GCP-1 & GQS-1)",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="beanapologist",
@@ -50,7 +50,7 @@ setup(
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
         "Operating System :: OS Independent",
     ],
-    keywords="quantum cryptography consensus blockchain deterministic qkd gcp gqs",
+    keywords="quantum-key-distribution qkd deterministic-key checksum quantum-security cryptography consensus blockchain gcp gqs binary-fusion-tap checksums verified-keys",
     project_urls={
         "Bug Reports": "https://github.com/beanapologist/seed/issues",
         "Source": "https://github.com/beanapologist/seed",

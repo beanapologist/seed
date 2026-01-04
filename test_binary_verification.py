@@ -12,7 +12,9 @@ Tests validate:
 """
 
 import unittest
-from verify_binary_representation import (
+import sys
+sys.path.insert(0, '/home/runner/work/seed/seed')
+from checksum.verify_binary_representation import (
     verify_binary_representation,
     calculate_checksum,
     verify_checksum_integrity,

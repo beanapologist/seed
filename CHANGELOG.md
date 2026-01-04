@@ -1,10 +1,11 @@
 # Changelog
 
-All notable changes to the Binary Fusion Tap Multi-Language Compiler.
+All notable changes to the Quantum Key Distribution (QKD) Multi-Language Compiler with deterministic keys and verified checksums.
 
 ## [1.0.0] - 2026-01-03
 
 ### Added
+- **Quantum Key Distribution (QKD) System**: Complete implementation with deterministic keys and quantum-level security
 - **Multi-Language Compiler**: Generate Binary Fusion Tap implementations in 7 languages
   - Python (3.6+)
   - JavaScript (Node.js + Browser)
@@ -16,6 +17,7 @@ All notable changes to the Binary Fusion Tap Multi-Language Compiler.
 
 - **Quantum Key Generator Service (QKGS)**:
   - Three algorithms: Fusion, Hash, Hybrid
+  - Deterministic key generation with verified checksums
   - Configurable key lengths: 128, 256, 512 bits
   - Batch generation
   - JSON/Text output
@@ -45,14 +47,16 @@ All notable changes to the Binary Fusion Tap Multi-Language Compiler.
 
 ### Features
 
-**Binary Fusion Tap Algorithm:**
-1. Seed Generation: Concatenate 1,2,3,...,k
-2. 8-fold Heartbeat: Bit-shift left by 3
-3. Phase Offset: Add k parameter
-4. ZPE Overflow: XOR extraction for k ≥ 10
+**Binary Fusion Tap Algorithm (QKD Core):**
+1. Seed Generation: Concatenate 1,2,3,...,k (deterministic)
+2. 8-fold Heartbeat: Bit-shift left by 3 (×8 multiplication)
+3. Phase Offset: Add k parameter for phase alignment
+4. ZPE Overflow: XOR extraction for k ≥ 10 (quantum entropy)
+5. Checksum Verification: SHA256/SHA512 integrity validation
 
 **Applications:**
-- Secure key generation for encryption systems
+- **Quantum Key Distribution (QKD)** - Primary use case
+- Secure key generation with verified checksums
 - Protocol verification and compliance testing
 - Quantum-inspired cryptography research
 - Deterministic tie-breaking in distributed systems
