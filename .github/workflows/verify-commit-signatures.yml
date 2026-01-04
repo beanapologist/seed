@@ -23,15 +23,25 @@ jobs:
         run: |
           set -e
           bad_commits=0
+          bot_commits=0
           for sha in $(git rev-list origin/${{ github.base_ref }}..HEAD); do
+            author=$(git show --quiet --pretty=format:%an $sha)
             status=$(git show --quiet --pretty=format:%G? $sha)
+            
+            # Skip signature verification for bot commits
+            if echo "$author" | grep -qE '\[bot\]$'; then
+              echo "Skipping bot commit $sha by $author"
+              bot_commits=$((bot_commits+1))
+              continue
+            fi
+            
             if [ "$status" != "G" ]; then
-              echo "Commit $sha is not GPG-signed (status: $status)"
+              echo "Commit $sha by $author is not GPG-signed (status: $status)"
               bad_commits=$((bad_commits+1))
             fi
           done
           if [ "$bad_commits" -ne 0 ]; then
-            echo "Found $bad_commits unsigned commits"
+            echo "Found $bad_commits unsigned commits (skipped $bot_commits bot commits)"
             exit 1
           fi
-          echo "All commits in PR are signed."
+          echo "All commits in PR are signed (skipped $bot_commits bot commits)."
