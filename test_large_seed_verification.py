@@ -1,8 +1,8 @@
 """
-Unit tests for Large Seed Checksum Verification Tool.
+Unit tests for Seed File Checksum Verification Tool.
 
 Tests validate:
-- File size validation (1056+ bits requirement)
+- File size validation (arbitrary bit sizes, with optional minimum)
 - SHA-256 checksum calculation and verification
 - SHA-512 checksum calculation and verification
 - Manifested data calculation and checksums
@@ -31,7 +31,7 @@ from checksum.verify_large_seeds import (
 
 
 class TestLargeSeedVerification(unittest.TestCase):
-    """Test suite for large seed checksum verification."""
+    """Test suite for seed file checksum verification."""
 
     @classmethod
     def setUpClass(cls):
@@ -42,7 +42,7 @@ class TestLargeSeedVerification(unittest.TestCase):
         cls.test_checksums_file = 'formats/test_checksums.json'
 
     def test_file_size_validation_1056_bits(self):
-        """Test that 1056-bit (132-byte) file meets size requirement."""
+        """Test that 1056-bit (132-byte) file can be validated."""
         if not os.path.exists(self.test_seed_132):
             self.skipTest(f"Test file not found: {self.test_seed_132}")
         
@@ -50,10 +50,13 @@ class TestLargeSeedVerification(unittest.TestCase):
         
         self.assertEqual(info['size_bytes'], 132)
         self.assertEqual(info['size_bits'], 1056)
+        # With min_bits=0 (default), any size should pass
+        self.assertGreaterEqual(info['size_bits'], 0)
+        # With min_bits=1056, this should meet requirement
         self.assertGreaterEqual(info['size_bits'], 1056)
 
     def test_file_size_validation_2048_bits(self):
-        """Test that 2048-bit (256-byte) file meets size requirement."""
+        """Test that 2048-bit (256-byte) file can be validated."""
         if not os.path.exists(self.test_seed_256):
             self.skipTest(f"Test file not found: {self.test_seed_256}")
         
@@ -61,10 +64,10 @@ class TestLargeSeedVerification(unittest.TestCase):
         
         self.assertEqual(info['size_bytes'], 256)
         self.assertEqual(info['size_bits'], 2048)
-        self.assertGreaterEqual(info['size_bits'], 1056)
+        self.assertGreaterEqual(info['size_bits'], 0)
 
     def test_file_size_validation_4096_bits(self):
-        """Test that 4096-bit (512-byte) file meets size requirement."""
+        """Test that 4096-bit (512-byte) file can be validated."""
         if not os.path.exists(self.test_seed_512):
             self.skipTest(f"Test file not found: {self.test_seed_512}")
         
@@ -72,7 +75,7 @@ class TestLargeSeedVerification(unittest.TestCase):
         
         self.assertEqual(info['size_bytes'], 512)
         self.assertEqual(info['size_bits'], 4096)
-        self.assertGreaterEqual(info['size_bits'], 1056)
+        self.assertGreaterEqual(info['size_bits'], 0)
 
     def test_checksum_calculation_format(self):
         """Test that checksums are calculated in correct format."""
@@ -139,19 +142,24 @@ class TestLargeSeedVerification(unittest.TestCase):
         self.assertIn('error', result)
 
     def test_verify_small_file(self):
-        """Test that files smaller than 1056 bits fail size requirement."""
+        """Test that files of any size can be verified when min_bits=0 (default)."""
         # Create a temporary small file
         with tempfile.NamedTemporaryFile(mode='wb', delete=False) as f:
             temp_file = f.name
-            f.write(b'0' * 100)  # 800 bits, less than 1056
+            f.write(b'0' * 100)  # 800 bits
         
         try:
-            result = verify_seed_file(temp_file)
+            # With default min_bits=0, this should pass
+            result = verify_seed_file(temp_file, min_bits=0)
             
             self.assertTrue(result['exists'])
-            self.assertFalse(result['meets_size_requirement'])
+            self.assertTrue(result['meets_size_requirement'])
             self.assertEqual(result['size_bits'], 800)
-            self.assertIn('error', result)
+            
+            # With min_bits=1000, this should fail
+            result_with_min = verify_seed_file(temp_file, min_bits=1000)
+            self.assertFalse(result_with_min['meets_size_requirement'])
+            self.assertIn('error', result_with_min)
         finally:
             os.unlink(temp_file)
 
@@ -249,7 +257,7 @@ class TestLargeSeedVerification(unittest.TestCase):
         self.assertEqual(result['manifested_bit_length'], expected_bit_length)
 
     def test_all_test_seeds_meet_requirements(self):
-        """Test that all test seed files meet the 1056+ bit requirement."""
+        """Test that all test seed files can be validated."""
         test_files = [
             self.test_seed_132,
             self.test_seed_256,
@@ -259,10 +267,11 @@ class TestLargeSeedVerification(unittest.TestCase):
         for filepath in test_files:
             if os.path.exists(filepath):
                 info = get_file_info(filepath)
+                # With min_bits=0 (default), all files should pass
                 self.assertGreaterEqual(
                     info['size_bits'],
-                    1056,
-                    f"{filepath} does not meet 1056+ bit requirement"
+                    0,
+                    f"{filepath} should be a valid file"
                 )
 
     def test_checksum_mismatch_detection(self):
@@ -281,6 +290,102 @@ class TestLargeSeedVerification(unittest.TestCase):
         self.assertFalse(result['sha256_valid'])
         self.assertFalse(result['sha512_valid'])
         self.assertEqual(result['status'], 'FAILED')
+
+    def test_arbitrary_bit_size_small(self):
+        """Test checksum verification for small arbitrary bit sizes (64 bits)."""
+        # Create a temporary 8-byte (64-bit) file
+        with tempfile.NamedTemporaryFile(mode='wb', delete=False) as f:
+            temp_file = f.name
+            f.write(b'testdata')  # 8 bytes = 64 bits
+        
+        try:
+            result = verify_seed_file(temp_file, min_bits=0)
+            
+            self.assertTrue(result['exists'])
+            self.assertTrue(result['meets_size_requirement'])
+            self.assertEqual(result['size_bits'], 64)
+            self.assertIsNotNone(result['sha256'])
+            self.assertIsNotNone(result['sha512'])
+            self.assertEqual(len(result['sha256']), 64)
+            self.assertEqual(len(result['sha512']), 128)
+        finally:
+            os.unlink(temp_file)
+
+    def test_arbitrary_bit_size_custom_minimum(self):
+        """Test custom minimum bit size requirements."""
+        # Create files of various sizes
+        test_cases = [
+            (50, 400),   # 50 bytes = 400 bits
+            (100, 800),  # 100 bytes = 800 bits
+            (200, 1600), # 200 bytes = 1600 bits
+        ]
+        
+        for byte_size, bit_size in test_cases:
+            with tempfile.NamedTemporaryFile(mode='wb', delete=False) as f:
+                temp_file = f.name
+                f.write(b'0' * byte_size)
+            
+            try:
+                # Should pass with min_bits=0
+                result = verify_seed_file(temp_file, min_bits=0)
+                self.assertTrue(result['meets_size_requirement'])
+                self.assertEqual(result['size_bits'], bit_size)
+                
+                # Test with custom minimum below actual size
+                result = verify_seed_file(temp_file, min_bits=bit_size - 100)
+                self.assertTrue(result['meets_size_requirement'])
+                
+                # Test with custom minimum above actual size
+                result = verify_seed_file(temp_file, min_bits=bit_size + 100)
+                self.assertFalse(result['meets_size_requirement'])
+            finally:
+                os.unlink(temp_file)
+
+    def test_very_large_bit_size(self):
+        """Test checksum verification for very large bit sizes (16KB = 128Kbit)."""
+        # Create a temporary 16KB file
+        with tempfile.NamedTemporaryFile(mode='wb', delete=False) as f:
+            temp_file = f.name
+            f.write(b'A' * 16384)  # 16KB
+        
+        try:
+            result = verify_seed_file(temp_file, min_bits=0)
+            
+            self.assertTrue(result['exists'])
+            self.assertTrue(result['meets_size_requirement'])
+            self.assertEqual(result['size_bits'], 131072)  # 16KB * 8
+            self.assertIsNotNone(result['sha256'])
+            self.assertIsNotNone(result['sha512'])
+            self.assertEqual(result['status'], 'CALCULATED')
+        finally:
+            os.unlink(temp_file)
+
+    def test_batch_verification_with_min_bits(self):
+        """Test batch verification with custom minimum bit size."""
+        # Create temporary files of various sizes
+        temp_files = []
+        try:
+            for size in [50, 100, 200]:
+                with tempfile.NamedTemporaryFile(mode='wb', delete=False) as f:
+                    temp_files.append(f.name)
+                    f.write(b'0' * size)
+            
+            # Verify with min_bits=0 (all should pass)
+            results = verify_batch(temp_files, min_bits=0)
+            self.assertEqual(len(results), 3)
+            for result in results:
+                self.assertTrue(result['meets_size_requirement'])
+            
+            # Verify with min_bits=1000 (none should pass since max is 1600 bits)
+            results = verify_batch(temp_files, min_bits=1000)
+            # 50 bytes = 400 bits (fail), 100 bytes = 800 bits (fail), 200 bytes = 1600 bits (pass)
+            self.assertFalse(results[0]['meets_size_requirement'])
+            self.assertFalse(results[1]['meets_size_requirement'])
+            self.assertTrue(results[2]['meets_size_requirement'])
+        finally:
+            for f in temp_files:
+                if os.path.exists(f):
+                    os.unlink(f)
 
 
 class TestVerificationIntegration(unittest.TestCase):

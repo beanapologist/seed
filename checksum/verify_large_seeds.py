@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """
-Large Seed Checksum Verification Tool
+Seed File Checksum Verification Tool
 
-This script verifies checksums for seed files exceeding 1056 bits (132 bytes).
-It validates data integrity using SHA-256 and SHA-512 checksums for larger
+This script verifies checksums for seed files of any bit strength.
+It validates data integrity using SHA-256 and SHA-512 checksums for
 binary seeds used in cryptographic applications.
 
 Features:
-- Validates existence of input files with 1056+ bit sizes
+- Validates existence of input files
 - Executes SHA-256 and SHA-512 checksum verification
 - Outputs integrity results for seed and manifested binary data
 - Supports batch verification of multiple seed files
+- Configurable minimum bit size requirement (optional)
 """
 
 import hashlib
@@ -63,13 +64,14 @@ def get_file_info(filepath: str) -> Dict[str, int]:
     }
 
 
-def verify_seed_file(filepath: str, expected_checksums: Dict = None) -> Dict:
+def verify_seed_file(filepath: str, expected_checksums: Dict = None, min_bits: int = 0) -> Dict:
     """
     Verify a seed file's existence, size, and checksums.
     
     Args:
         filepath: Path to the seed file
         expected_checksums: Optional dict with 'sha256' and/or 'sha512' keys
+        min_bits: Minimum required bit size (default: 0, accepts any size)
         
     Returns:
         Dictionary containing verification results
@@ -98,11 +100,11 @@ def verify_seed_file(filepath: str, expected_checksums: Dict = None) -> Dict:
     file_info = get_file_info(filepath)
     result.update(file_info)
     
-    # Check if size meets 1056+ bit requirement
-    if result['size_bits'] >= 1056:
+    # Check if size meets minimum bit requirement
+    if result['size_bits'] >= min_bits:
         result['meets_size_requirement'] = True
     else:
-        result['error'] = f"File size {result['size_bits']} bits is less than required 1056 bits"
+        result['error'] = f"File size {result['size_bits']} bits is less than required {min_bits} bits"
         return result
     
     # Calculate checksums
@@ -193,13 +195,14 @@ def load_expected_checksums(checksum_file: str) -> Dict:
         return json.load(f)
 
 
-def verify_batch(seed_files: List[str], checksum_file: str = None) -> List[Dict]:
+def verify_batch(seed_files: List[str], checksum_file: str = None, min_bits: int = 0) -> List[Dict]:
     """
     Verify multiple seed files in batch.
     
     Args:
         seed_files: List of seed file paths to verify
         checksum_file: Optional path to JSON file with expected checksums
+        min_bits: Minimum required bit size (default: 0, accepts any size)
         
     Returns:
         List of verification result dictionaries
@@ -216,22 +219,23 @@ def verify_batch(seed_files: List[str], checksum_file: str = None) -> List[Dict]
         expected = expected_checksums_map.get(filename)
         
         # Verify seed file
-        result = verify_seed_file(filepath, expected)
+        result = verify_seed_file(filepath, expected, min_bits)
         results.append(result)
     
     return results
 
 
-def print_verification_report(results: List[Dict], include_manifested: bool = False):
+def print_verification_report(results: List[Dict], include_manifested: bool = False, min_bits: int = 0):
     """
     Print a formatted verification report.
     
     Args:
         results: List of verification result dictionaries
         include_manifested: Whether to include manifested data verification
+        min_bits: Minimum required bit size used in verification
     """
     print("=" * 80)
-    print("LARGE SEED CHECKSUM VERIFICATION REPORT")
+    print("SEED FILE CHECKSUM VERIFICATION REPORT")
     print("=" * 80)
     print()
     
@@ -242,6 +246,8 @@ def print_verification_report(results: List[Dict], include_manifested: bool = Fa
     print(f"Total Files: {total}")
     print(f"Passed: {passed}")
     print(f"Failed: {failed}")
+    if min_bits > 0:
+        print(f"Minimum Bit Size: {min_bits} bits")
     print()
     
     for i, result in enumerate(results, 1):
@@ -250,7 +256,11 @@ def print_verification_report(results: List[Dict], include_manifested: bool = Fa
         
         if result['exists']:
             print(f"    Size: {result['size_bytes']} bytes ({result['size_bits']} bits)")
-            print(f"    Meets 1056+ bit requirement: {'✅ YES' if result['meets_size_requirement'] else '❌ NO'}")
+            if min_bits > 0:
+                req_text = f"Meets {min_bits}+ bit requirement"
+            else:
+                req_text = "Size validated"
+            print(f"    {req_text}: {'✅ YES' if result['meets_size_requirement'] else '❌ NO'}")
             
             if result['sha256']:
                 print(f"    SHA-256: {result['sha256']}")
@@ -285,12 +295,12 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(
-        description='Verify checksums for seed files exceeding 1056 bits'
+        description='Verify checksums for seed files of any bit strength'
     )
     parser.add_argument(
         'seed_files',
         nargs='*',
-        help='Seed files to verify (default: all 1056+ bit seeds in formats/)'
+        help='Seed files to verify (default: test seeds in formats/)'
     )
     parser.add_argument(
         '--checksums',
@@ -307,6 +317,12 @@ def main():
         action='store_true',
         help='Output results in JSON format'
     )
+    parser.add_argument(
+        '--min-bits',
+        type=int,
+        default=0,
+        help='Minimum required bit size (default: 0, accepts any size)'
+    )
     
     args = parser.parse_args()
     
@@ -314,7 +330,7 @@ def main():
     if args.seed_files:
         seed_files = args.seed_files
     else:
-        # Default: verify all large seed files in formats/
+        # Default: verify test seed files in formats/
         formats_dir = Path('formats')
         seed_files = [
             str(formats_dir / 'golden_seed_132.bin'),
@@ -323,13 +339,13 @@ def main():
         ]
     
     # Run verification
-    results = verify_batch(seed_files, args.checksums if os.path.exists(args.checksums) else None)
+    results = verify_batch(seed_files, args.checksums if os.path.exists(args.checksums) else None, args.min_bits)
     
     # Output results
     if args.json:
         print(json.dumps(results, indent=2))
     else:
-        success = print_verification_report(results, include_manifested=args.manifested)
+        success = print_verification_report(results, include_manifested=args.manifested, min_bits=args.min_bits)
         sys.exit(0 if success else 1)
 
 

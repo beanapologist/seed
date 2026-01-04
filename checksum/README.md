@@ -5,17 +5,17 @@ This directory contains tools for verifying checksums and ensuring data integrit
 ## Tools
 
 - **verify_binary_representation.py** - Binary representation verification with SHA256/SHA512 checksum validation
-- **verify_large_seeds.py** - Large seed checksum verification for seeds exceeding 1056 bits
+- **verify_large_seeds.py** - Seed file checksum verification for any bit strength
 
 ## Features
 
-- SHA256 and SHA512 checksum calculation
+- SHA256 and SHA512 checksum calculation for any bit strength
 - Binary representation verification
 - 8-fold Heartbeat operation validation
 - ZPE Overflow extraction verification
 - Data integrity verification during transmission or storage
 - NIST PQC compatible verification methods
-- Large seed file verification (1056+ bits)
+- Support for arbitrary input sizes (from small seeds to multi-kilobit files)
 - Batch verification support
 - Manifested data integrity validation
 
@@ -33,42 +33,47 @@ The tool demonstrates the relationship between seed values and their manifested 
 manifested = (seed * 8) + k
 ```
 
-### Large Seed Verification
+### Seed File Verification
 
 ```bash
-# Verify all large seeds (1056+ bits) in formats/ directory
+# Verify seed files in formats/ directory
 python checksum/verify_large_seeds.py
 
 # Verify with manifested data calculation
 python checksum/verify_large_seeds.py --manifested
 
-# Verify specific seed files
-python checksum/verify_large_seeds.py formats/golden_seed_132.bin formats/golden_seed_256.bin
+# Verify specific seed files (any bit size)
+python checksum/verify_large_seeds.py formats/golden_seed_16.bin formats/golden_seed_132.bin
 
 # Output in JSON format
 python checksum/verify_large_seeds.py --json
 
 # Use custom checksums file
 python checksum/verify_large_seeds.py --checksums path/to/checksums.json
+
+# Set custom minimum bit size (default: 0, accepts any size)
+python checksum/verify_large_seeds.py --min-bits 1056
 ```
 
-## Large Seed Files
+## Test Seed Files
 
-The repository includes test seed files with 1056+ bit sizes for verification:
+The repository includes test seed files with various bit sizes for verification:
 
-- **golden_seed_132.bin** - 132 bytes (1056 bits) - Minimum size requirement
-- **golden_seed_256.bin** - 256 bytes (2048 bits) - Medium size seed
-- **golden_seed_512.bin** - 512 bytes (4096 bits) - Large size seed
+- **golden_seed_16.bin** - 16 bytes (128 bits) - Small seed example
+- **golden_seed_32.bin** - 32 bytes (256 bits) - Standard seed example
+- **golden_seed_132.bin** - 132 bytes (1056 bits) - Large seed example
+- **golden_seed_256.bin** - 256 bytes (2048 bits) - Extra large seed example
+- **golden_seed_512.bin** - 512 bytes (4096 bits) - Multi-kilobit seed example
 
-Expected checksums are stored in `formats/test_checksums.json` for automated validation.
+These files demonstrate the tool's ability to handle arbitrary bit strengths. Expected checksums are stored in `formats/test_checksums.json` for automated validation.
 
 ## Automated Verification
 
-The GitHub Actions workflow `.github/workflows/checksum-verification.yml` automatically verifies:
+The checksum verification tools support:
 
-1. Existence of input files with 1056+ bit sizes
-2. SHA-256 and SHA-512 checksums for all large seeds
-3. Manifested binary data integrity
-4. Generates verification logs stored as artifacts
+1. Arbitrary input file sizes (from bytes to megabytes)
+2. SHA-256 and SHA-512 checksums for any bit strength
+3. Manifested binary data integrity validation
+4. Flexible batch verification with configurable size requirements
 
-The workflow triggers on `push` and `pull_request` events to the `main` branch.
+The tools are designed to work with cryptographic seeds of any size, making them suitable for various post-quantum cryptography applications.

@@ -9,11 +9,13 @@ This directory contains the golden seed values in various binary and hex formats
 - **golden_seed_16.bin** - 16-byte binary seed (iφ)
 - **golden_seed_32.bin** - 32-byte binary seed (iφ + 2×φ for consensus)
 
-### Large Seed Test Files (1056+ bits)
-- **golden_seed_132.bin** - 132-byte binary seed (1056 bits)
-- **golden_seed_256.bin** - 256-byte binary seed (2048 bits)
-- **golden_seed_512.bin** - 512-byte binary seed (4096 bits)
-- **test_checksums.json** - Expected SHA-256/SHA-512 checksums for large seed files
+### Test Seed Files (Various Bit Strengths)
+- **golden_seed_132.bin** - 132-byte binary seed (1056 bits) - Large seed example
+- **golden_seed_256.bin** - 256-byte binary seed (2048 bits) - Extra large seed example
+- **golden_seed_512.bin** - 512-byte binary seed (4096 bits) - Multi-kilobit seed example
+- **test_checksums.json** - Expected SHA-256/SHA-512 checksums for test seed files
+
+The test files demonstrate checksum verification for various bit strengths and are not size requirements. The checksum tools support arbitrary bit sizes for cryptographic applications.
 
 ## Seed Values
 
@@ -45,18 +47,20 @@ These seeds are used for deterministic tie-breaking in distributed systems and p
 
 ## Large Seed Files
 
-The large seed files (1056+ bits) are used for testing and validating checksum verification workflows. These files contain deterministic data based on the golden ratio pattern and are used to ensure data integrity for larger binary seeds used in cryptographic applications.
+The test seed files demonstrate checksum verification for various bit strengths and are used for testing and validating checksum verification workflows. These files contain deterministic data based on the golden ratio pattern and demonstrate data integrity validation for binary seeds of different sizes used in cryptographic applications.
+
+The checksum tools in this repository support arbitrary bit sizes, from small seeds (128 bits) to multi-megabit seeds, making them suitable for any post-quantum cryptographic application.
 
 ### Verification
 
-To verify the integrity of all seed files:
+To verify the integrity of seed files:
 
 ```bash
-# Verify large seeds with checksums
+# Verify seed files with checksums (any bit size)
 python checksum/verify_large_seeds.py
 
 # Verify with manifested data
 python checksum/verify_large_seeds.py --manifested
 ```
 
-The expected checksums are stored in `test_checksums.json` for automated validation.
+The expected checksums are stored in `test_checksums.json` for automated validation. The verification tools support arbitrary bit sizes.
