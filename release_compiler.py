@@ -413,11 +413,11 @@ def create_build_scripts(language: str) -> dict:
 
     scripts = {
         'python': {
-            'run.sh': '#!/bin/bash\npython3 binary_fusion_tap.py\n',
-            'test.sh': '#!/bin/bash\npython3 -m doctest binary_fusion_tap.py\n'
+            'run.sh': '#!/bin/bash\nset -e\npython3 binary_fusion_tap.py\n',
+            'test.sh': '#!/bin/bash\nset -e\npython3 -m doctest binary_fusion_tap.py\n'
         },
         'javascript': {
-            'run.sh': '#!/bin/bash\nnode binary_fusion_tap.js\n',
+            'run.sh': '#!/bin/bash\nset -e\nnode binary_fusion_tap.js\n',
             'package.json': json.dumps({
                 "name": "binary-fusion-tap",
                 "version": VERSION,
@@ -429,8 +429,8 @@ def create_build_scripts(language: str) -> dict:
             }, indent=2)
         },
         'typescript': {
-            'build.sh': '#!/bin/bash\ntsc binary_fusion_tap.ts\n',
-            'run.sh': '#!/bin/bash\ntsc binary_fusion_tap.ts && node binary_fusion_tap.js\n',
+            'build.sh': '#!/bin/bash\nset -e\ntsc binary_fusion_tap.ts\n',
+            'run.sh': '#!/bin/bash\nset -e\ntsc binary_fusion_tap.ts && node binary_fusion_tap.js\n',
             'tsconfig.json': json.dumps({
                 "compilerOptions": {
                     "target": "ES2020",
@@ -441,8 +441,8 @@ def create_build_scripts(language: str) -> dict:
             }, indent=2)
         },
         'rust': {
-            'build.sh': '#!/bin/bash\nrustc binary_fusion_tap.rs\n',
-            'run.sh': '#!/bin/bash\nrustc binary_fusion_tap.rs && ./binary_fusion_tap\n',
+            'build.sh': '#!/bin/bash\nset -e\nrustc binary_fusion_tap.rs\n',
+            'run.sh': '#!/bin/bash\nset -e\nrustc binary_fusion_tap.rs && ./binary_fusion_tap\n',
             'Cargo.toml': f'''[package]
 name = "binary-fusion-tap"
 version = "{VERSION}"
@@ -454,16 +454,16 @@ path = "binary_fusion_tap.rs"
 '''
         },
         'go': {
-            'build.sh': '#!/bin/bash\ngo build binary_fusion_tap.go\n',
-            'run.sh': '#!/bin/bash\ngo run binary_fusion_tap.go\n',
+            'build.sh': '#!/bin/bash\nset -e\ngo build binary_fusion_tap.go\n',
+            'run.sh': '#!/bin/bash\nset -e\ngo run binary_fusion_tap.go\n',
             'go.mod': f'''module binary-fusion-tap
 
 go 1.18
 '''
         },
         'c': {
-            'build.sh': '#!/bin/bash\ngcc -O3 binary_fusion_tap.c -o binary_fusion_tap\n',
-            'run.sh': '#!/bin/bash\ngcc binary_fusion_tap.c -o binary_fusion_tap && ./binary_fusion_tap\n',
+            'build.sh': '#!/bin/bash\nset -e\ngcc -O3 binary_fusion_tap.c -o binary_fusion_tap\n',
+            'run.sh': '#!/bin/bash\nset -e\ngcc binary_fusion_tap.c -o binary_fusion_tap && ./binary_fusion_tap\n',
             'Makefile': f'''CC=gcc
 CFLAGS=-O3 -Wall
 TARGET=binary_fusion_tap
@@ -481,8 +481,8 @@ run: $(TARGET)
 '''
         },
         'java': {
-            'build.sh': '#!/bin/bash\njavac BinaryFusionTap.java\n',
-            'run.sh': '#!/bin/bash\njavac BinaryFusionTap.java && java BinaryFusionTap\n'
+            'build.sh': '#!/bin/bash\nset -e\njavac BinaryFusionTap.java\n',
+            'run.sh': '#!/bin/bash\nset -e\njavac BinaryFusionTap.java && java BinaryFusionTap\n'
         }
     }
 
