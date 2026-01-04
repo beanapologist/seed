@@ -41,6 +41,14 @@ jobs:
       run: |
         python -m unittest test_universal_qkd -v
 
+    - name: Run Large Seed Verification unit tests
+      run: |
+        python -m unittest test_large_seed_verification -v
+
+    - name: Run Binary Verification unit tests
+      run: |
+        python -m unittest test_binary_verification -v
+
     - name: Verify GCP-1 first key matches specification
       run: |
         FIRST_KEY=$(python -c "from gq import generate_universal_keys; print(generate_universal_keys(1)[0])")
