@@ -21,7 +21,7 @@ import hashlib
 from unittest.mock import patch
 import sys
 import os
-# Add parent directory to path for imports
+# Add repository root to path for imports (test files are in root directory)
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 from qkd.algorithms.gqs1 import (
     HEX_SEED,

@@ -10,8 +10,8 @@ import argparse
 import json
 import sys
 import os
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Add repository root to path for imports (k_value_explorer.py is in root directory)
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 from typing import List, Dict
 from checksum.verify_binary_representation import binary_fusion_tap, calculate_checksum
 
