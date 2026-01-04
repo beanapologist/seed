@@ -5,12 +5,13 @@
 
 ## Overview
 
-Production-ready implementations of the Binary Fusion Tap algorithm in 7 programming languages, providing **deterministic key generation** with **quantum-level security** and **verified checksums**.
+Production-ready implementations of the Binary Fusion Tap algorithm in 7 programming languages, providing **deterministic key generation** with **post-quantum security** and **verified checksums**.
 
-This release delivers cross-platform QKD (Quantum Key Distribution) capabilities with:
+This release delivers cross-platform post-quantum secure key generation capabilities with:
 - **Deterministic Keys**: Reproducible cryptographic keys from seed values
 - **Checksum Verification**: SHA256/SHA512 integrity validation
-- **Quantum Security**: Quantum-inspired cryptographic operations
+- **NIST PQC Alignment**: Compatible with Kyber, Dilithium, FrodoKEM
+- **Quantum-Resistant Security**: Designed for protection against quantum computer attacks
 - **Universal Compatibility**: Consistent output across all implementations
 
 ## What's Included

@@ -35,7 +35,6 @@ class PQKeyGenerator:
     High-performance key generator using Binary Fusion Tap for post-quantum secure applications.
     Compatible with NIST PQC algorithms (Kyber, Dilithium, FrodoKEM).
     """
-    """
 
     def __init__(self, algorithm: str = 'fusion', key_length: int = 256):
         """
@@ -246,7 +245,7 @@ def print_key_output(keys: List[Dict], output_format: str = 'text') -> None:
         print(json.dumps(keys, indent=2))
     else:
         print("=" * 80)
-        print("QUANTUM KEY GENERATOR SERVICE (QKGS)")
+        print("POST-QUANTUM SECURE KEY GENERATOR SERVICE")
         print("=" * 80)
 
         for i, key_data in enumerate(keys, 1):
@@ -272,9 +271,9 @@ def print_key_output(keys: List[Dict], output_format: str = 'text') -> None:
 
 
 def main():
-    """CLI interface for the Quantum Key Generator Service."""
+    """CLI interface for the Post-Quantum Secure Key Generator Service."""
     parser = argparse.ArgumentParser(
-        description='Quantum Key Generator Service (QKGS) - Generate cryptographic keys using Binary Fusion Tap',
+        description='Post-Quantum Secure Key Generator - Generate cryptographic keys using Binary Fusion Tap (NIST PQC Compatible)',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -338,7 +337,7 @@ Examples:
     args = parser.parse_args()
 
     # Initialize generator
-    generator = QuantumKeyGenerator(
+    generator = PQKeyGenerator(
         algorithm=args.algorithm,
         key_length=args.length
     )

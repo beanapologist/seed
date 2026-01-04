@@ -1,6 +1,6 @@
 # Checksum Verification
 
-This directory contains tools for verifying checksums and ensuring data integrity in the QKD system.
+This directory contains tools for verifying checksums and ensuring data integrity in the post-quantum secure key generation system.
 
 ## Tools
 
@@ -13,6 +13,7 @@ This directory contains tools for verifying checksums and ensuring data integrit
 - 8-fold Heartbeat operation validation
 - ZPE Overflow extraction verification
 - Data integrity verification during transmission or storage
+- NIST PQC compatible verification methods
 
 ## Usage
 

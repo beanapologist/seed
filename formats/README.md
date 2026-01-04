@@ -26,7 +26,7 @@ This directory contains the golden seed values in various binary and hex formats
 
 ## Usage
 
-These binary files can be read in any programming language to obtain the universal golden seed for deterministic key generation with quantum-level security.
+These binary files can be read in any programming language to obtain the universal golden seed for deterministic key generation with post-quantum security properties.
 
 ### Interpretation
 
@@ -34,4 +34,4 @@ These binary files can be read in any programming language to obtain the univers
 - Bytes 8-15: Imaginary part = φ ≈ 1.618033988749895
 - Format: IEEE 754 double-precision (little-endian complex)
 
-These seeds are used for deterministic tie-breaking in distributed systems and quantum-inspired key generation.
+These seeds are used for deterministic tie-breaking in distributed systems and post-quantum secure key generation, compatible with NIST PQC algorithms.

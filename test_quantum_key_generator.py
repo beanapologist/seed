@@ -1,5 +1,5 @@
 """
-Unit tests for Quantum Key Generator Service (QKGS).
+Unit tests for Post-Quantum Secure Key Generator Service.
 
 Tests validate:
 - Key generation algorithms (Fusion, Hash, Hybrid)
@@ -14,31 +14,31 @@ import sys
 import os
 # Add current directory (repository root) to path for imports
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
-from qkd.algorithms.quantum_key_generator import QuantumKeyGenerator
+from qkd.algorithms.quantum_key_generator import PQKeyGenerator
 
 
-class TestQuantumKeyGenerator(unittest.TestCase):
-    """Test suite for Quantum Key Generator Service."""
+class TestPQKeyGenerator(unittest.TestCase):
+    """Test suite for Post-Quantum Secure Key Generator Service."""
 
     def test_generator_initialization(self):
         """Test that generator initializes with valid parameters."""
-        gen = QuantumKeyGenerator(algorithm='fusion', key_length=256)
+        gen = PQKeyGenerator(algorithm='fusion', key_length=256)
         self.assertEqual(gen.algorithm, 'fusion')
         self.assertEqual(gen.key_length, 256)
 
     def test_invalid_algorithm(self):
         """Test that invalid algorithm raises ValueError."""
         with self.assertRaises(ValueError):
-            QuantumKeyGenerator(algorithm='invalid', key_length=256)
+            PQKeyGenerator(algorithm='invalid', key_length=256)
 
     def test_invalid_key_length(self):
         """Test that invalid key length raises ValueError."""
         with self.assertRaises(ValueError):
-            QuantumKeyGenerator(algorithm='fusion', key_length=1024)
+            PQKeyGenerator(algorithm='fusion', key_length=1024)
 
     def test_fusion_key_generation(self):
         """Test Binary Fusion Tap key generation."""
-        gen = QuantumKeyGenerator(algorithm='fusion', key_length=256)
+        gen = PQKeyGenerator(algorithm='fusion', key_length=256)
         key_data = gen.generate_fusion_key(k=11)
 
         # Verify key structure
@@ -54,7 +54,7 @@ class TestQuantumKeyGenerator(unittest.TestCase):
 
     def test_hash_key_generation(self):
         """Test hash-based key generation."""
-        gen = QuantumKeyGenerator(algorithm='hash', key_length=256)
+        gen = PQKeyGenerator(algorithm='hash', key_length=256)
         key_data = gen.generate_hash_key()
 
         # Verify key structure
@@ -64,7 +64,7 @@ class TestQuantumKeyGenerator(unittest.TestCase):
 
     def test_hybrid_key_generation(self):
         """Test hybrid key generation."""
-        gen = QuantumKeyGenerator(algorithm='hybrid', key_length=256)
+        gen = PQKeyGenerator(algorithm='hybrid', key_length=256)
         key_data = gen.generate_hybrid_key(k=11)
 
         # Verify key structure
@@ -76,7 +76,7 @@ class TestQuantumKeyGenerator(unittest.TestCase):
 
     def test_key_length_128(self):
         """Test 128-bit key generation."""
-        gen = QuantumKeyGenerator(algorithm='fusion', key_length=128)
+        gen = PQKeyGenerator(algorithm='fusion', key_length=128)
         key_data = gen.generate_key(k=11)
 
         # 128 bits = 32 hex characters
@@ -85,7 +85,7 @@ class TestQuantumKeyGenerator(unittest.TestCase):
 
     def test_key_length_512(self):
         """Test 512-bit key generation."""
-        gen = QuantumKeyGenerator(algorithm='fusion', key_length=512)
+        gen = PQKeyGenerator(algorithm='fusion', key_length=512)
         key_data = gen.generate_key(k=11)
 
         # 512 bits = 128 hex characters
@@ -94,7 +94,7 @@ class TestQuantumKeyGenerator(unittest.TestCase):
 
     def test_batch_generation(self):
         """Test batch key generation."""
-        gen = QuantumKeyGenerator(algorithm='fusion', key_length=256)
+        gen = PQKeyGenerator(algorithm='fusion', key_length=256)
         keys = gen.generate_batch(5, k=11)
 
         # Verify batch size
@@ -108,7 +108,7 @@ class TestQuantumKeyGenerator(unittest.TestCase):
 
     def test_key_uniqueness_in_batch(self):
         """Test that batch-generated keys are unique."""
-        gen = QuantumKeyGenerator(algorithm='fusion', key_length=256)
+        gen = PQKeyGenerator(algorithm='fusion', key_length=256)
         keys = gen.generate_batch(10, k=11)
 
         # Extract all keys
@@ -119,7 +119,7 @@ class TestQuantumKeyGenerator(unittest.TestCase):
 
     def test_deterministic_fusion_key(self):
         """Test that fusion keys are deterministic for same parameters."""
-        gen = QuantumKeyGenerator(algorithm='fusion', key_length=256)
+        gen = PQKeyGenerator(algorithm='fusion', key_length=256)
 
         key1 = gen.generate_fusion_key(k=11)
         key2 = gen.generate_fusion_key(k=11)
@@ -129,7 +129,7 @@ class TestQuantumKeyGenerator(unittest.TestCase):
 
     def test_fusion_key_with_salt(self):
         """Test that salt changes fusion keys."""
-        gen = QuantumKeyGenerator(algorithm='fusion', key_length=256)
+        gen = PQKeyGenerator(algorithm='fusion', key_length=256)
 
         salt1 = b'salt123'
         salt2 = b'salt456'
@@ -142,7 +142,7 @@ class TestQuantumKeyGenerator(unittest.TestCase):
 
     def test_hash_key_randomness(self):
         """Test that hash keys are random when no seed provided."""
-        gen = QuantumKeyGenerator(algorithm='hash', key_length=256)
+        gen = PQKeyGenerator(algorithm='hash', key_length=256)
 
         key1 = gen.generate_hash_key()
         key2 = gen.generate_hash_key()
@@ -152,7 +152,7 @@ class TestQuantumKeyGenerator(unittest.TestCase):
 
     def test_hash_key_deterministic_with_seed(self):
         """Test that hash keys are deterministic with same seed."""
-        gen = QuantumKeyGenerator(algorithm='hash', key_length=256)
+        gen = PQKeyGenerator(algorithm='hash', key_length=256)
 
         seed = 123456789
         key1 = gen.generate_hash_key(seed=seed)
@@ -163,7 +163,7 @@ class TestQuantumKeyGenerator(unittest.TestCase):
 
     def test_checksum_validity(self):
         """Test that checksums are valid hex strings."""
-        gen = QuantumKeyGenerator(algorithm='fusion', key_length=256)
+        gen = PQKeyGenerator(algorithm='fusion', key_length=256)
         key_data = gen.generate_key(k=11)
 
         checksum = key_data['checksum']
@@ -174,7 +174,7 @@ class TestQuantumKeyGenerator(unittest.TestCase):
 
     def test_different_k_values(self):
         """Test fusion keys with different k values."""
-        gen = QuantumKeyGenerator(algorithm='fusion', key_length=256)
+        gen = PQKeyGenerator(algorithm='fusion', key_length=256)
 
         key_k11 = gen.generate_fusion_key(k=11)
         key_k12 = gen.generate_fusion_key(k=12)
@@ -187,7 +187,7 @@ class TestQuantumKeyGenerator(unittest.TestCase):
 
     def test_hybrid_entropy_mixing(self):
         """Test that hybrid algorithm properly mixes entropy sources."""
-        gen = QuantumKeyGenerator(algorithm='hybrid', key_length=256)
+        gen = PQKeyGenerator(algorithm='hybrid', key_length=256)
 
         # Generate with external entropy
         entropy1 = b'external_entropy_source_1'
@@ -201,7 +201,7 @@ class TestQuantumKeyGenerator(unittest.TestCase):
 
     def test_key_hex_format(self):
         """Test that keys are valid hexadecimal strings."""
-        gen = QuantumKeyGenerator(algorithm='fusion', key_length=256)
+        gen = PQKeyGenerator(algorithm='fusion', key_length=256)
         key_data = gen.generate_key(k=11)
 
         key_hex = key_data['key']
@@ -217,7 +217,7 @@ class TestQuantumKeyGenerator(unittest.TestCase):
 
     def test_zpe_overflow_in_fusion_keys(self):
         """Test that ZPE overflow is included in fusion key metadata."""
-        gen = QuantumKeyGenerator(algorithm='fusion', key_length=256)
+        gen = PQKeyGenerator(algorithm='fusion', key_length=256)
         key_data = gen.generate_fusion_key(k=11)
 
         self.assertIn('zpe_overflow', key_data)
