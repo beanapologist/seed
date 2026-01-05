@@ -15,6 +15,7 @@ Tests validate:
 
 import unittest
 import hashlib
+import math
 import sys
 import os
 from typing import List, Set, Dict
@@ -347,16 +348,16 @@ class TestSeedDiversityAnalysis(unittest.TestCase):
             byte_counts = Counter(all_bytes)
             total_bytes = len(all_bytes)
             
-            entropy = 0.0
+            # Calculate Shannon entropy in bits
+            entropy_bits = 0.0
             for count in byte_counts.values():
-                p = count / total_bytes
-                entropy -= p * (p and (p * 0.69314718056 + 0.0))  # p * log2(p)
+                if count > 0:  # Only calculate for non-zero probabilities
+                    p = count / total_bytes
+                    entropy_bits -= p * math.log2(p)
             
-            # Normalize to bits per byte (max is 8)
-            entropy_per_byte = entropy / 0.69314718056  # Convert to bits
-            entropy_samples.append(entropy_per_byte)
+            entropy_samples.append(entropy_bits)
         
-        # All samples should have high entropy (> 7.5 bits per byte)
+        # All samples should have high entropy (> 7.0 bits per byte, max is 8)
         for pos, entropy in zip(sample_positions, entropy_samples):
             self.assertGreater(entropy, 7.0,
                              f"Low entropy at position {pos}: {entropy:.3f}")

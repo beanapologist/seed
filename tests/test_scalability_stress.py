@@ -113,8 +113,8 @@ class TestLargeScaleKeyGeneration(unittest.TestCase):
             if i >= total_keys:
                 break
             
-            # Verify key format
-            if i % 100000 == 0 and i > 0:
+            # Progress reporting at reasonable intervals (every 200K keys)
+            if i > 0 and i % 200000 == 0:
                 print(f"\nGenerated {i:,} keys...")
             
             self.assertEqual(len(key), 16)
