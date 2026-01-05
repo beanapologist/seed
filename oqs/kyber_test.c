@@ -117,12 +117,21 @@ int main(void) {
     printf("========================================\n");
 
 cleanup:
-    // Clean up
+    // Clean up and securely clear sensitive cryptographic material
+    if (secret_key) {
+        memset(secret_key, 0, kem->length_secret_key);
+        free(secret_key);
+    }
+    if (shared_secret_alice) {
+        memset(shared_secret_alice, 0, kem->length_shared_secret);
+        free(shared_secret_alice);
+    }
+    if (shared_secret_bob) {
+        memset(shared_secret_bob, 0, kem->length_shared_secret);
+        free(shared_secret_bob);
+    }
     free(public_key);
-    free(secret_key);
     free(ciphertext);
-    free(shared_secret_alice);
-    free(shared_secret_bob);
     OQS_KEM_free(kem);
 
     return (rc == OQS_SUCCESS) ? EXIT_SUCCESS : EXIT_FAILURE;

@@ -42,10 +42,11 @@ This checklist ensures that post-quantum cryptographic implementations follow be
   - ❌ Custom/unaudited implementations
 
 - [ ] **Keep libraries updated**
-  - Check for security updates monthly
-  - Monitor CVE databases
-  - Subscribe to security mailing lists
-  - Current liboqs version: 0.10.1 (verify latest)
+  - Check for security updates monthly (automate via Dependabot or Renovate)
+  - Monitor CVE databases (subscribe to https://nvd.nist.gov/)
+  - Subscribe to security mailing lists (liboqs-discuss@openquantumsafe.org)
+  - Current liboqs version: 0.10.1 (check https://github.com/open-quantum-safe/liboqs/releases)
+  - Automated version check: Run `curl -s https://api.github.com/repos/open-quantum-safe/liboqs/releases/latest | grep tag_name`
 
 ### Code Quality
 
