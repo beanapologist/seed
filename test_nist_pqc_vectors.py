@@ -158,7 +158,7 @@ class TestNISTPQCVectors(unittest.TestCase):
                 # Verify entropy quality
                 metrics = validate_pqc_seed_entropy(pqc_seed)
                 self.assertTrue(metrics['passes_basic_checks'],
-                              f"Entropy check failed for {algorithm.value}")
+                                f"Entropy check failed for {algorithm.value}")
     
     def test_seed_length_compliance(self):
         """Test that all seed lengths match NIST specifications."""

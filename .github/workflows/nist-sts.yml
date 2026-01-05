@@ -60,24 +60,7 @@ jobs:
         if [ -f results/nist_universal_results.json ]; then
           echo "## NIST STS Results - Universal QKD" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          python -c "
-          import json
-          with open('results/nist_universal_results.json') as f:
-              r = json.load(f)
-          
-          print('### Summary')
-          print(f\"- Total bits: {r['metadata']['total_bits']:,}\")
-          print(f\"- Tests passed: {r['summary']['passed']}/{r['summary']['total_tests']}\")
-          print(f\"- Pass rate: {r['summary']['pass_rate']*100:.1f}%\")
-          print(f\"- Overall: {'✓ PASSED' if r['summary']['overall_passed'] else '✗ FAILED'}\")
-          print()
-          print('### Test Details')
-          print('| Test | P-Value | Status |')
-          print('|------|---------|--------|')
-          for name, result in r['tests'].items():
-              status = '✓' if result['passed'] else '✗'
-              print(f\"| {name} | {result['p_value']:.6f} | {status} {result['status']} |\")
-          " >> $GITHUB_STEP_SUMMARY
+          python scripts/display_nist_results.py results/nist_universal_results.json >> $GITHUB_STEP_SUMMARY
         fi
 
   nist-sts-pqc:
@@ -134,24 +117,7 @@ jobs:
         if [ -f results/nist_${{ matrix.algorithm }}_results.json ]; then
           echo "## NIST STS Results - $ALGO_UPPER" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          python -c "
-          import json
-          with open('results/nist_${{ matrix.algorithm }}_results.json') as f:
-              r = json.load(f)
-          
-          print('### Summary')
-          print(f\"- Total bits: {r['metadata']['total_bits']:,}\")
-          print(f\"- Tests passed: {r['summary']['passed']}/{r['summary']['total_tests']}\")
-          print(f\"- Pass rate: {r['summary']['pass_rate']*100:.1f}%\")
-          print(f\"- Overall: {'✓ PASSED' if r['summary']['overall_passed'] else '✗ FAILED'}\")
-          print()
-          print('### Test Details')
-          print('| Test | P-Value | Status |')
-          print('|------|---------|--------|')
-          for name, result in r['tests'].items():
-              status = '✓' if result['passed'] else '✗'
-              print(f\"| {name} | {result['p_value']:.6f} | {status} {result['status']} |\")
-          " >> $GITHUB_STEP_SUMMARY
+          python scripts/display_nist_results.py results/nist_${{ matrix.algorithm }}_results.json >> $GITHUB_STEP_SUMMARY
         fi
 
   nist-sts-validation:

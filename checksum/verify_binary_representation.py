@@ -46,8 +46,8 @@ def calculate_checksum(value: int, algorithm: str = 'sha256') -> str:
 
 
 def verify_checksum_integrity(seed_value: int, manifested_value: int,
-                               expected_seed_checksum: str = None,
-                               expected_manifested_checksum: str = None) -> dict:
+                                expected_seed_checksum: str = None,
+                                expected_manifested_checksum: str = None) -> dict:
     """
     Verify the integrity of seed and manifested values using checksums.
 

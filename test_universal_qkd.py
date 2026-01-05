@@ -295,7 +295,7 @@ class TestUniversalQKD(unittest.TestCase):
             for i, key in enumerate(keys[:10]):  # Check first 10 keys
                 result = validate_zero_bias(key)
                 self.assertTrue(result['passes'],
-                              f"Key #{i} failed bias validation: {result['bias_types']}")
+                                f"Key #{i} failed bias validation: {result['bias_types']}")
             
             # Test aggregate entropy
             combined = b''.join(keys)
@@ -303,8 +303,8 @@ class TestUniversalQKD(unittest.TestCase):
             entropy = analyzer.shannon_entropy()
             
             # Should have good aggregate entropy
-            self.assertGreater(entropy, 7.5, 
-                             "Key stream does not have sufficient entropy")
+            self.assertGreater(entropy, 7.5,
+                               "Key stream does not have sufficient entropy")
         except ImportError:
             # Entropy testing module not available, skip
             self.skipTest("Entropy testing module not available")
