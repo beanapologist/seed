@@ -7,6 +7,7 @@ Tests validate:
 - Correct seed lengths for each algorithm
 - Entropy quality of generated seeds
 - Security level mappings
+- Zero-bias validation
 """
 
 import unittest
@@ -23,6 +24,7 @@ from gq.nist_pqc import (
     ALGORITHM_SECURITY_LEVELS,
     ALGORITHM_SEED_LENGTHS,
 )
+from gq.entropy_testing import validate_zero_bias
 
 
 class TestPQCAlgorithms(unittest.TestCase):
@@ -92,12 +94,20 @@ class TestHybridKeyGeneration(unittest.TestCase):
         det_key, pqc_seed = generate_hybrid_key(PQCAlgorithm.KYBER768)
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 32)
+        
+        # Validate zero bias
+        self.assertTrue(validate_zero_bias(det_key)['passes'])
+        self.assertTrue(validate_zero_bias(pqc_seed)['passes'])
     
     def test_generate_kyber1024_seed(self):
         """Test Kyber-1024 hybrid key generation."""
         det_key, pqc_seed = generate_hybrid_key(PQCAlgorithm.KYBER1024)
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 32)
+        
+        # Validate zero bias
+        self.assertTrue(validate_zero_bias(det_key)['passes'])
+        self.assertTrue(validate_zero_bias(pqc_seed)['passes'])
     
     def test_generate_dilithium2_seed(self):
         """Test Dilithium2 hybrid key generation."""
