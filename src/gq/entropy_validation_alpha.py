@@ -2,16 +2,16 @@
 Entropy Validation Framework with Fine-Structure Constant Scaling
 
 This module implements a comprehensive entropy validation framework using:
-- μ = e^(i·3π/4) as the 8th root of unity (135° on the unit circle)
+- φ ≈ 1.618... (golden ratio) for fractional-phase resampling
 - α ≈ 1/137 (fine-structure constant approximation) for scaling
 - Z ∈ {1, 2, 3, ...} (integer quantization)
-- Vector formulation: V_Z = Z · α · μ
+- Vector formulation: V_Z = Z · α · exp(2πi{Z·φ})
 
 The framework tests whether this approach supports claims about:
-1. Discrete symmetry by geometry using μ as 8th root of unity
-2. Coherent and predictable results with α scaling and quantized Z-values
-3. Periodic table-like discrete samples along the 135° ray
-4. Cryptographic randomness properties via statistical tests
+1. Magnitude component: |V_Z| = Z·α (linear scaling with Z and α)
+2. Fractional-phase resampling: Golden ratio φ provides low-discrepancy sequences
+3. Uniform angular distribution on the unit circle via {Z·φ} modulo 1
+4. NIST SP 800-90 statistical entropy validation
 
 Author: GitHub Copilot
 Date: 2026-01-05
@@ -27,46 +27,65 @@ import sys
 
 
 # Mathematical constants
-PHI = (1 + math.sqrt(5)) / 2  # Golden ratio
+PHI = (1 + math.sqrt(5)) / 2  # Golden ratio ≈ 1.618033988749895
 ALPHA = 1.0 / 137.035999084  # Fine-structure constant (CODATA 2018) - precise value
 ALPHA_APPROX = 1.0 / 137  # Approximation as specified in problem statement
 # Note: ALPHA_APPROX is used throughout the framework as specified in the requirements
-
-# μ = e^(i·3π/4) - The 8th root of unity at 135°
-MU_ANGLE = 3 * math.pi / 4  # 135 degrees in radians
-MU = cmath.exp(1j * MU_ANGLE)
 
 # IEEE 754 constants
 EPSILON_64 = sys.float_info.epsilon  # Machine epsilon for double precision
 
 
+def fractional_part(x: float) -> float:
+    """
+    Compute the fractional part {x} = x - floor(x).
+    
+    Args:
+        x: Input value
+        
+    Returns:
+        Fractional part in [0, 1)
+    """
+    return x - math.floor(x)
+
+
 class QuantizedVector:
     """
-    Represents a quantized vector V_Z = Z · α · μ
+    Represents a quantized vector V_Z = Z · α · exp(2πi{Z·φ})
     
     Attributes:
         z: Integer quantum number (Z ∈ {1, 2, 3, ...})
         alpha: Fine-structure constant scaling factor
-        mu: Complex number μ = e^(i·3π/4)
+        phi: Golden ratio for fractional-phase resampling
         vector: The computed vector V_Z
     """
     
-    def __init__(self, z: int, alpha: float = ALPHA_APPROX, mu: complex = MU):
+    def __init__(self, z: int, alpha: float = ALPHA_APPROX, phi: float = PHI):
         """
         Initialize a quantized vector.
         
         Args:
             z: Integer quantum number (must be positive)
             alpha: Fine-structure constant (default: 1/137)
-            mu: Complex rotation center (default: e^(i·3π/4))
+            phi: Golden ratio (default: (1+√5)/2)
         """
         if z < 1:
             raise ValueError("Z must be a positive integer (Z ∈ {1, 2, 3, ...})")
         
         self.z = z
         self.alpha = alpha
-        self.mu = mu
-        self.vector = z * alpha * mu
+        self.phi = phi
+        
+        # Magnitude: |V_Z| = Z · α
+        magnitude = z * alpha
+        
+        # Phase: exp(2πi{Z·φ}) where {x} is fractional part
+        fractional_phase = fractional_part(z * phi)
+        phase_angle = 2 * math.pi * fractional_phase
+        phase = cmath.exp(1j * phase_angle)
+        
+        # V_Z = Z · α · exp(2πi{Z·φ})
+        self.vector = magnitude * phase
     
     def magnitude(self) -> float:
         """Get the magnitude of the vector."""
@@ -89,39 +108,45 @@ class QuantizedVector:
         imag_bytes = struct.pack('d', self.vector.imag)
         return real_bytes + imag_bytes
     
+    def fractional_phase(self) -> float:
+        """Get the fractional phase {Z·φ} in [0, 1)."""
+        return fractional_part(self.z * self.phi)
+    
     def __repr__(self) -> str:
-        return f"V_{self.z} = {self.z} × α × μ = {self.vector}"
+        return f"V_{self.z} = {self.z} × α × exp(2πi{{{self.z}·φ}}) = {self.vector}"
 
 
 class DiscreteSymmetryValidator:
     """
     Validates discrete symmetry properties of quantized vectors.
     
-    Tests whether μ = e^(i·3π/4) as the 8th root of unity maintains
-    discrete symmetry by geometry.
+    Tests whether the golden ratio φ provides low-discrepancy sequences
+    for uniform angular distribution on the unit circle.
     """
     
     @staticmethod
-    def verify_8th_root_of_unity() -> Dict[str, Any]:
+    def verify_golden_ratio_properties() -> Dict[str, Any]:
         """
-        Verify that μ is indeed an 8th root of unity.
+        Verify properties of the golden ratio φ.
         
-        For μ to be an 8th root of unity, μ^8 should equal 1.
+        The golden ratio has the property: φ = 1 + 1/φ
+        Also, φ² = φ + 1
         """
-        mu_8 = MU ** 8
+        phi_squared = PHI ** 2
+        phi_plus_one = PHI + 1
         
-        # Check if μ^8 ≈ 1
-        error = abs(mu_8 - 1.0)
+        error = abs(phi_squared - phi_plus_one)
         is_valid = error < 1e-10
         
         return {
-            'mu': MU,
-            'mu_angle_degrees': math.degrees(MU_ANGLE),
-            'mu_magnitude': abs(MU),
-            'mu^8': mu_8,
-            'mu^8_error_from_1': error,
-            'is_8th_root_of_unity': is_valid,
-            'tolerance': 1e-10
+            'phi': PHI,
+            'phi_value': PHI,
+            'phi_squared': phi_squared,
+            'phi_plus_one': phi_plus_one,
+            'phi_squared_error': error,
+            'is_golden_ratio': is_valid,
+            'tolerance': 1e-10,
+            'continued_fraction': '1 + 1/(1 + 1/(1 + ...))'
         }
     
     @staticmethod
@@ -137,21 +162,22 @@ class DiscreteSymmetryValidator:
         """
         vectors = [QuantizedVector(z) for z in z_values]
         
-        # All vectors should have the same angle (135°)
-        angles = [v.angle_degrees() for v in vectors]
-        angle_variance = max(angles) - min(angles)
-        
         # Magnitudes should scale linearly with Z
         magnitudes = [v.magnitude() for v in vectors]
-        expected_scaling = [(z * ALPHA_APPROX * abs(MU)) for z in z_values]
+        expected_scaling = [(z * ALPHA_APPROX) for z in z_values]
         scaling_errors = [abs(m - e) for m, e in zip(magnitudes, expected_scaling)]
         max_scaling_error = max(scaling_errors)
         
+        # Angles should be distributed according to {Z·φ}
+        angles_radians = [v.angle() for v in vectors]
+        angles_degrees = [v.angle_degrees() for v in vectors]
+        fractional_phases = [v.fractional_phase() for v in vectors]
+        
         return {
             'z_values': z_values,
-            'angles_degrees': angles,
-            'angle_variance': angle_variance,
-            'all_aligned_at_135': angle_variance < 1e-10,
+            'angles_radians': angles_radians,
+            'angles_degrees': angles_degrees,
+            'fractional_phases': fractional_phases,
             'magnitudes': magnitudes,
             'expected_magnitudes': expected_scaling,
             'max_scaling_error': max_scaling_error,
@@ -161,16 +187,16 @@ class DiscreteSymmetryValidator:
 
 class PeriodicTableValidator:
     """
-    Validates periodic table-like discrete sampling along the 135° ray.
+    Validates low-discrepancy sequence properties using golden ratio.
     
-    Tests whether outputs align with periodic table-like discrete samples
-    with precision and consistency.
+    Tests whether fractional phases {Z·φ} provide uniform distribution
+    on the unit circle according to Weyl's equidistribution theorem.
     """
     
     @staticmethod
     def generate_periodic_samples(max_z: int = 118) -> List[QuantizedVector]:
         """
-        Generate periodic table-like samples (similar to element count).
+        Generate samples with golden ratio phase distribution.
         
         Args:
             max_z: Maximum Z value (default: 118, similar to periodic table)
@@ -183,17 +209,18 @@ class PeriodicTableValidator:
     @staticmethod
     def analyze_periodicity(vectors: List[QuantizedVector]) -> Dict[str, Any]:
         """
-        Analyze periodicity and consistency of sampled vectors.
+        Analyze low-discrepancy and uniformity of sampled vectors.
         
         Args:
             vectors: List of quantized vectors
             
         Returns:
-            Dictionary with periodicity analysis
+            Dictionary with distribution analysis
         """
         z_values = [v.z for v in vectors]
         magnitudes = [v.magnitude() for v in vectors]
         angles = [v.angle_degrees() for v in vectors]
+        fractional_phases = [v.fractional_phase() for v in vectors]
         
         # Check linear spacing of magnitudes
         magnitude_diffs = [magnitudes[i+1] - magnitudes[i] 
@@ -201,9 +228,27 @@ class PeriodicTableValidator:
         mean_diff = sum(magnitude_diffs) / len(magnitude_diffs)
         diff_variance = sum((d - mean_diff)**2 for d in magnitude_diffs) / len(magnitude_diffs)
         
-        # Check angle consistency (all should be 135°)
-        angle_mean = sum(angles) / len(angles)
-        angle_std = math.sqrt(sum((a - angle_mean)**2 for a in angles) / len(angles))
+        # Check uniformity of fractional phases (low-discrepancy)
+        # For a truly uniform distribution, phases should be spread across [0, 1)
+        phase_bins = [0] * 10  # 10 bins
+        for fp in fractional_phases:
+            bin_idx = min(int(fp * 10), 9)
+            phase_bins[bin_idx] += 1
+        
+        expected_per_bin = len(vectors) / 10
+        chi_square = sum((count - expected_per_bin)**2 / expected_per_bin 
+                         for count in phase_bins)
+        
+        # Compute discrepancy (simplified star discrepancy estimate)
+        sorted_phases = sorted(fractional_phases)
+        max_discrepancy = 0.0
+        n = len(sorted_phases)
+        for i, phase in enumerate(sorted_phases):
+            # Discrepancy between empirical and uniform CDF
+            empirical_cdf = (i + 1) / n
+            uniform_cdf = phase
+            discrepancy = abs(empirical_cdf - uniform_cdf)
+            max_discrepancy = max(max_discrepancy, discrepancy)
         
         return {
             'num_samples': len(vectors),
@@ -211,11 +256,13 @@ class PeriodicTableValidator:
             'magnitude_range': (min(magnitudes), max(magnitudes)),
             'mean_magnitude_spacing': mean_diff,
             'magnitude_spacing_variance': diff_variance,
-            'uniform_spacing': diff_variance < 1e-20,
-            'angle_mean_degrees': angle_mean,
-            'angle_std_degrees': angle_std,
-            'angle_consistency': angle_std < 1e-10,
-            'all_on_135_ray': all(abs(a - 135.0) < 1e-10 for a in angles)
+            'uniform_magnitude_spacing': diff_variance < 1e-20,
+            'fractional_phase_range': (min(fractional_phases), max(fractional_phases)),
+            'phase_bin_distribution': phase_bins,
+            'phase_chi_square': chi_square,
+            'phase_uniformity_passed': chi_square < 20.0,  # χ² critical value for 9 df at α=0.01
+            'star_discrepancy': max_discrepancy,
+            'low_discrepancy': max_discrepancy < 0.1  # Good low-discrepancy threshold
         }
 
 
@@ -544,16 +591,16 @@ def validate_framework() -> Dict[str, Any]:
     """
     results = {}
     
-    # 1. Verify μ as 8th root of unity
-    results['8th_root_validation'] = DiscreteSymmetryValidator.verify_8th_root_of_unity()
+    # 1. Verify golden ratio properties
+    results['golden_ratio_validation'] = DiscreteSymmetryValidator.verify_golden_ratio_properties()
     
-    # 2. Verify discrete symmetry
+    # 2. Verify discrete symmetry and linear magnitude scaling
     test_z_values = [1, 2, 5, 10, 20, 50, 100, 118]
     results['discrete_symmetry'] = DiscreteSymmetryValidator.verify_discrete_symmetry(test_z_values)
     
-    # 3. Validate periodicity
+    # 3. Validate low-discrepancy sequence properties
     periodic_samples = PeriodicTableValidator.generate_periodic_samples(118)
-    results['periodicity'] = PeriodicTableValidator.analyze_periodicity(periodic_samples)
+    results['low_discrepancy'] = PeriodicTableValidator.analyze_periodicity(periodic_samples)
     
     # 4. Generate entropy stream and test
     entropy_stream = EntropyExtractor.generate_entropy_stream((1, 118), 10000)
@@ -561,10 +608,10 @@ def validate_framework() -> Dict[str, Any]:
     
     # 5. Overall assessment
     results['overall_assessment'] = {
-        'mu_is_8th_root': results['8th_root_validation']['is_8th_root_of_unity'],
-        'discrete_symmetry_maintained': results['discrete_symmetry']['all_aligned_at_135'],
-        'linear_scaling_preserved': results['discrete_symmetry']['linear_scaling_preserved'],
-        'periodic_sampling_consistent': results['periodicity']['all_on_135_ray'],
+        'phi_is_golden_ratio': results['golden_ratio_validation']['is_golden_ratio'],
+        'linear_magnitude_scaling': results['discrete_symmetry']['linear_scaling_preserved'],
+        'low_discrepancy_phase': results['low_discrepancy']['low_discrepancy'],
+        'phase_uniformity': results['low_discrepancy']['phase_uniformity_passed'],
         'statistical_tests_passed': results['statistical_tests']['overall_passed']
     }
     
@@ -574,14 +621,13 @@ def validate_framework() -> Dict[str, Any]:
 if __name__ == '__main__':
     """Run validation when module is executed directly."""
     print("=" * 80)
-    print("Entropy Validation Framework with Fine-Structure Constant Scaling")
+    print("Entropy Validation Framework with Golden Ratio Phase Distribution")
     print("=" * 80)
     print()
     print(f"Configuration:")
-    print(f"  μ = e^(i·3π/4) = {MU}")
-    print(f"  |μ| = {abs(MU):.10f}")
-    print(f"  ∠μ = {math.degrees(MU_ANGLE):.1f}°")
+    print(f"  φ = (1 + √5)/2 ≈ {PHI:.15f}")
     print(f"  α = 1/137 ≈ {ALPHA_APPROX:.10f}")
+    print(f"  V_Z = Z · α · exp(2πi{{Z·φ}})")
     print()
     
     print("Running comprehensive validation...")
@@ -591,27 +637,29 @@ if __name__ == '__main__':
     print("VALIDATION RESULTS")
     print("=" * 80)
     
-    print("\n1. 8th Root of Unity Verification:")
-    root_results = results['8th_root_validation']
-    print(f"   μ^8 = {root_results['mu^8']}")
-    print(f"   |μ^8 - 1| = {root_results['mu^8_error_from_1']:.2e}")
-    print(f"   ✓ PASS" if root_results['is_8th_root_of_unity'] else "   ✗ FAIL")
+    print("\n1. Golden Ratio Verification:")
+    gr_results = results['golden_ratio_validation']
+    print(f"   φ = {gr_results['phi']:.15f}")
+    print(f"   φ² = {gr_results['phi_squared']:.15f}")
+    print(f"   φ + 1 = {gr_results['phi_plus_one']:.15f}")
+    print(f"   |φ² - (φ+1)| = {gr_results['phi_squared_error']:.2e}")
+    print(f"   ✓ PASS" if gr_results['is_golden_ratio'] else "   ✗ FAIL")
     
-    print("\n2. Discrete Symmetry:")
+    print("\n2. Magnitude Scaling (Linear with Z):")
     sym_results = results['discrete_symmetry']
-    print(f"   Angle variance: {sym_results['angle_variance']:.2e}°")
     print(f"   Max scaling error: {sym_results['max_scaling_error']:.2e}")
-    print(f"   All aligned at 135°: {sym_results['all_aligned_at_135']}")
-    print(f"   ✓ PASS" if sym_results['all_aligned_at_135'] and sym_results['linear_scaling_preserved'] else "   ✗ FAIL")
+    print(f"   Linear scaling preserved: {sym_results['linear_scaling_preserved']}")
+    print(f"   ✓ PASS" if sym_results['linear_scaling_preserved'] else "   ✗ FAIL")
     
-    print("\n3. Periodic Table-like Sampling:")
-    period_results = results['periodicity']
-    print(f"   Samples: {period_results['num_samples']}")
-    print(f"   Z range: {period_results['z_range']}")
-    print(f"   Magnitude range: ({period_results['magnitude_range'][0]:.6e}, {period_results['magnitude_range'][1]:.6e})")
-    print(f"   Uniform spacing: {period_results['uniform_spacing']}")
-    print(f"   All on 135° ray: {period_results['all_on_135_ray']}")
-    print(f"   ✓ PASS" if period_results['all_on_135_ray'] and period_results['uniform_spacing'] else "   ✗ FAIL")
+    print("\n3. Low-Discrepancy Phase Distribution:")
+    ld_results = results['low_discrepancy']
+    print(f"   Samples: {ld_results['num_samples']}")
+    print(f"   Z range: {ld_results['z_range']}")
+    print(f"   Star discrepancy: {ld_results['star_discrepancy']:.6f}")
+    print(f"   Phase χ² statistic: {ld_results['phase_chi_square']:.2f}")
+    print(f"   Phase uniformity: {'PASS' if ld_results['phase_uniformity_passed'] else 'FAIL'}")
+    print(f"   Low-discrepancy: {'PASS' if ld_results['low_discrepancy'] else 'FAIL'}")
+    print(f"   ✓ PASS" if ld_results['low_discrepancy'] and ld_results['phase_uniformity_passed'] else "   ✗ FAIL")
     
     print("\n4. Statistical Tests (NIST-style):")
     stat_results = results['statistical_tests']
@@ -626,10 +674,10 @@ if __name__ == '__main__':
     print("FINAL ASSESSMENT")
     print("=" * 80)
     assessment = results['overall_assessment']
-    print(f"✓ μ is 8th root of unity: {assessment['mu_is_8th_root']}")
-    print(f"✓ Discrete symmetry maintained: {assessment['discrete_symmetry_maintained']}")
-    print(f"✓ Linear scaling preserved: {assessment['linear_scaling_preserved']}")
-    print(f"✓ Periodic sampling consistent: {assessment['periodic_sampling_consistent']}")
+    print(f"✓ φ is golden ratio: {assessment['phi_is_golden_ratio']}")
+    print(f"✓ Linear magnitude scaling (|V_Z| = Z·α): {assessment['linear_magnitude_scaling']}")
+    print(f"✓ Low-discrepancy phase distribution: {assessment['low_discrepancy_phase']}")
+    print(f"✓ Phase uniformity on unit circle: {assessment['phase_uniformity']}")
     print(f"✓ Statistical tests passed: {assessment['statistical_tests_passed']}")
     
     all_passed = all(assessment.values())
@@ -638,10 +686,10 @@ if __name__ == '__main__':
         print("✓ ALL VALIDATIONS PASSED")
         print()
         print("The framework demonstrates:")
-        print("  • Discrete symmetry by geometry using μ as 8th root of unity")
-        print("  • Coherent and predictable results with α scaling and quantized Z")
-        print("  • Periodic table-like discrete samples along the 135° ray")
-        print("  • Statistical properties compatible with deterministic structure")
+        print("  • Magnitude component: |V_Z| = Z·α (linear scaling)")
+        print("  • Fractional-phase resampling via golden ratio φ")
+        print("  • Low-discrepancy sequences on the unit circle")
+        print("  • Uniform angular distribution via {Z·φ}")
     else:
         print("✗ SOME VALIDATIONS FAILED")
         print()

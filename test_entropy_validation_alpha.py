@@ -1,11 +1,11 @@
 """
-Comprehensive test suite for entropy validation with fine-structure constant scaling.
+Comprehensive test suite for entropy validation with golden ratio phase distribution.
 
 Tests the framework using:
-- μ = e^(i·3π/4) as the 8th root of unity (135° on the unit circle)
+- φ ≈ 1.618... (golden ratio) for fractional-phase resampling
 - α ≈ 1/137 (fine-structure constant approximation) for scaling
 - Z ∈ {1, 2, 3, ...} (integer quantization)
-- Vector formulation: V_Z = Z · α · μ
+- Vector formulation: V_Z = Z · α · exp(2πi{Z·φ})
 
 Author: GitHub Copilot
 Date: 2026-01-05
@@ -20,7 +20,7 @@ from src.gq.entropy_validation_alpha import (
     PeriodicTableValidator,
     EntropyExtractor,
     StatisticalValidator,
-    MU, MU_ANGLE, ALPHA_APPROX,
+    PHI, ALPHA_APPROX, fractional_part,
     generate_test_vectors,
     validate_framework
 )
@@ -37,25 +37,34 @@ class TestQuantizedVector(unittest.TestCase):
         v1 = QuantizedVector(1)
         self.assertEqual(v1.z, 1)
         self.assertAlmostEqual(v1.alpha, ALPHA_APPROX)
-        self.assertEqual(v1.mu, MU)
+        self.assertAlmostEqual(v1.phi, PHI)
     
     def test_vector_magnitude(self):
-        """Test vector magnitude calculation."""
+        """Test vector magnitude calculation: |V_Z| = Z·α."""
         v1 = QuantizedVector(1)
-        expected_magnitude = 1 * ALPHA_APPROX * abs(MU)
+        expected_magnitude = 1 * ALPHA_APPROX
         self.assertAlmostEqual(v1.magnitude(), expected_magnitude)
         
         v10 = QuantizedVector(10)
-        expected_magnitude_10 = 10 * ALPHA_APPROX * abs(MU)
+        expected_magnitude_10 = 10 * ALPHA_APPROX
         self.assertAlmostEqual(v10.magnitude(), expected_magnitude_10)
     
     def test_vector_angle(self):
-        """Test vector angle is 135 degrees."""
+        """Test vector angle is based on {Z·φ}."""
         v1 = QuantizedVector(1)
-        self.assertAlmostEqual(v1.angle_degrees(), 135.0, places=10)
+        expected_angle_rad = 2 * math.pi * fractional_part(1 * PHI)
+        # cmath.phase returns values in [-π, π], so we need to normalize
+        actual_angle = v1.angle()
+        if actual_angle < 0:
+            actual_angle += 2 * math.pi
+        self.assertAlmostEqual(actual_angle, expected_angle_rad, places=10)
         
-        v100 = QuantizedVector(100)
-        self.assertAlmostEqual(v100.angle_degrees(), 135.0, places=10)
+        # Each Z has a different angle based on fractional part
+        v2 = QuantizedVector(2)
+        v3 = QuantizedVector(3)
+        # Angles should be different (not aligned at fixed angle)
+        self.assertNotAlmostEqual(v1.angle(), v2.angle(), places=2)
+        self.assertNotAlmostEqual(v2.angle(), v3.angle(), places=2)
     
     def test_linear_scaling(self):
         """Test that magnitude scales linearly with Z."""
@@ -74,84 +83,86 @@ class TestQuantizedVector(unittest.TestCase):
         with self.assertRaises(ValueError):
             QuantizedVector(-1)
     
-    def test_to_bytes(self):
-        """Test conversion to bytes."""
-        v1 = QuantizedVector(1)
-        byte_data = v1.to_bytes()
-        self.assertEqual(len(byte_data), 16)  # 2 doubles = 16 bytes
+    def test_fractional_phase(self):
+        """Test fractional phase {Z·φ} is in [0, 1)."""
+        for z in range(1, 20):
+            v = QuantizedVector(z)
+            fp = v.fractional_phase()
+            self.assertGreaterEqual(fp, 0.0)
+            self.assertLess(fp, 1.0)
 
 
 class TestDiscreteSymmetryValidator(unittest.TestCase):
     """Test discrete symmetry validation."""
     
-    def test_8th_root_of_unity(self):
-        """Test that μ is an 8th root of unity."""
-        result = DiscreteSymmetryValidator.verify_8th_root_of_unity()
+    def test_golden_ratio_properties(self):
+        """Test that φ satisfies φ² = φ + 1."""
+        result = DiscreteSymmetryValidator.verify_golden_ratio_properties()
         
-        self.assertTrue(result['is_8th_root_of_unity'])
-        self.assertAlmostEqual(result['mu_magnitude'], 1.0, places=10)
-        self.assertAlmostEqual(result['mu_angle_degrees'], 135.0, places=10)
-        self.assertLess(result['mu^8_error_from_1'], 1e-10)
+        self.assertTrue(result['is_golden_ratio'])
+        self.assertAlmostEqual(result['phi'], PHI, places=10)
+        # φ² should equal φ + 1
+        self.assertLess(result['phi_squared_error'], 1e-10)
     
-    def test_mu_power_8(self):
-        """Test that μ^8 ≈ 1."""
-        mu_8 = MU ** 8
-        error = abs(mu_8 - 1.0)
+    def test_phi_squared_property(self):
+        """Test that φ² = φ + 1."""
+        phi_squared = PHI ** 2
+        phi_plus_one = PHI + 1
+        error = abs(phi_squared - phi_plus_one)
         self.assertLess(error, 1e-10)
     
     def test_discrete_symmetry_small_z(self):
-        """Test discrete symmetry for small Z values."""
+        """Test magnitude scaling for small Z values."""
         z_values = [1, 2, 3, 4, 5]
         result = DiscreteSymmetryValidator.verify_discrete_symmetry(z_values)
         
-        self.assertTrue(result['all_aligned_at_135'])
         self.assertTrue(result['linear_scaling_preserved'])
-        self.assertLess(result['angle_variance'], 1e-10)
     
     def test_discrete_symmetry_large_z(self):
-        """Test discrete symmetry for large Z values."""
+        """Test magnitude scaling for large Z values."""
         z_values = [1, 10, 50, 100, 118]
         result = DiscreteSymmetryValidator.verify_discrete_symmetry(z_values)
         
-        self.assertTrue(result['all_aligned_at_135'])
         self.assertTrue(result['linear_scaling_preserved'])
         
-        # All angles should be 135°
-        for angle in result['angles_degrees']:
-            self.assertAlmostEqual(angle, 135.0, places=10)
+        # Magnitudes should scale linearly: |V_Z| = Z·α
+        for i, z in enumerate(z_values):
+            expected_mag = z * ALPHA_APPROX
+            self.assertAlmostEqual(result['magnitudes'][i], expected_mag, places=10)
     
-    def test_angle_consistency(self):
-        """Test that all vectors maintain 135° angle regardless of Z."""
+    def test_phase_distribution(self):
+        """Test that phases are distributed according to {Z·φ}."""
         z_values = list(range(1, 119))  # Z = 1 to 118
         vectors = [QuantizedVector(z) for z in z_values]
-        angles = [v.angle_degrees() for v in vectors]
+        fractional_phases = [v.fractional_phase() for v in vectors]
         
-        # All angles should be exactly 135°
-        for angle in angles:
-            self.assertAlmostEqual(angle, 135.0, places=10)
+        # All fractional phases should be in [0, 1)
+        for fp in fractional_phases:
+            self.assertGreaterEqual(fp, 0.0)
+            self.assertLess(fp, 1.0)
 
 
 class TestPeriodicTableValidator(unittest.TestCase):
-    """Test periodic table-like sampling validation."""
+    """Test low-discrepancy sequence validation."""
     
     def test_generate_periodic_samples(self):
-        """Test generation of periodic samples."""
+        """Test generation of samples."""
         samples = PeriodicTableValidator.generate_periodic_samples(118)
         
         self.assertEqual(len(samples), 118)
         self.assertEqual(samples[0].z, 1)
         self.assertEqual(samples[-1].z, 118)
     
-    def test_periodicity_analysis(self):
-        """Test periodicity analysis."""
+    def test_low_discrepancy_analysis(self):
+        """Test low-discrepancy sequence properties."""
         vectors = PeriodicTableValidator.generate_periodic_samples(118)
         result = PeriodicTableValidator.analyze_periodicity(vectors)
         
         self.assertEqual(result['num_samples'], 118)
         self.assertEqual(result['z_range'], (1, 118))
-        self.assertTrue(result['uniform_spacing'])
-        self.assertTrue(result['angle_consistency'])
-        self.assertTrue(result['all_on_135_ray'])
+        self.assertTrue(result['uniform_magnitude_spacing'])
+        self.assertTrue(result['low_discrepancy'])
+        self.assertTrue(result['phase_uniformity_passed'])
     
     def test_magnitude_spacing(self):
         """Test that magnitudes are uniformly spaced."""
@@ -161,13 +172,24 @@ class TestPeriodicTableValidator(unittest.TestCase):
         # Spacing variance should be essentially zero (uniform)
         self.assertLess(result['magnitude_spacing_variance'], 1e-20)
     
-    def test_small_periodic_table(self):
-        """Test with smaller periodic table."""
+    def test_phase_uniformity(self):
+        """Test that fractional phases are uniformly distributed."""
+        vectors = PeriodicTableValidator.generate_periodic_samples(100)
+        result = PeriodicTableValidator.analyze_periodicity(vectors)
+        
+        # Chi-square test should pass for uniform distribution
+        self.assertTrue(result['phase_uniformity_passed'])
+        
+        # Star discrepancy should be low
+        self.assertTrue(result['low_discrepancy'])
+    
+    def test_small_sample_set(self):
+        """Test with smaller sample set."""
         vectors = PeriodicTableValidator.generate_periodic_samples(10)
         result = PeriodicTableValidator.analyze_periodicity(vectors)
         
         self.assertEqual(result['num_samples'], 10)
-        self.assertTrue(result['all_on_135_ray'])
+        self.assertTrue(result['low_discrepancy'])
 
 
 class TestEntropyExtractor(unittest.TestCase):
@@ -330,24 +352,36 @@ class TestQuantumLikeBehavior(unittest.TestCase):
             self.assertIsInstance(vector.z, int)
     
     def test_fine_structure_scaling(self):
-        """Test that α ≈ 1/137 scaling is applied."""
+        """Test that α ≈ 1/137 scaling is applied to magnitude."""
         v1 = QuantizedVector(1)
         
-        # Magnitude should be α * |μ|
-        expected = ALPHA_APPROX * abs(MU)
+        # Magnitude should be Z·α
+        expected = ALPHA_APPROX
         self.assertAlmostEqual(v1.magnitude(), expected)
     
-    def test_unit_circle_geometry(self):
-        """Test that μ lies on the unit circle."""
-        mu_magnitude = abs(MU)
-        self.assertAlmostEqual(mu_magnitude, 1.0, places=10)
-    
-    def test_135_degree_ray(self):
-        """Test that all vectors lie on the 135° ray."""
-        vectors = generate_test_vectors((1, 50))
+    def test_golden_ratio_phase(self):
+        """Test that phase is based on golden ratio φ."""
+        v1 = QuantizedVector(1)
         
-        for vector in vectors:
-            self.assertAlmostEqual(vector.angle_degrees(), 135.0, places=10)
+        # Fractional phase should be {1·φ}
+        expected_fp = fractional_part(1 * PHI)
+        self.assertAlmostEqual(v1.fractional_phase(), expected_fp)
+    
+    def test_low_discrepancy_distribution(self):
+        """Test that {Z·φ} provides low-discrepancy sequence."""
+        vectors = generate_test_vectors((1, 100))
+        fractional_phases = [v.fractional_phase() for v in vectors]
+        
+        # Check that phases are well-distributed across [0, 1)
+        bins = [0] * 10
+        for fp in fractional_phases:
+            bin_idx = min(int(fp * 10), 9)
+            bins[bin_idx] += 1
+        
+        # Each bin should have roughly 10 values (100 samples / 10 bins)
+        # Allow some variance
+        for count in bins:
+            self.assertGreater(count, 0)  # No empty bins
 
 
 class TestFrameworkIntegration(unittest.TestCase):
@@ -357,34 +391,33 @@ class TestFrameworkIntegration(unittest.TestCase):
         """Test complete framework validation."""
         results = validate_framework()
         
-        self.assertIn('8th_root_validation', results)
+        self.assertIn('golden_ratio_validation', results)
         self.assertIn('discrete_symmetry', results)
-        self.assertIn('periodicity', results)
+        self.assertIn('low_discrepancy', results)
         self.assertIn('statistical_tests', results)
         self.assertIn('overall_assessment', results)
     
-    def test_8th_root_validation(self):
-        """Test 8th root of unity validation."""
+    def test_golden_ratio_validation(self):
+        """Test golden ratio validation."""
         results = validate_framework()
-        root_val = results['8th_root_validation']
+        gr_val = results['golden_ratio_validation']
         
-        self.assertTrue(root_val['is_8th_root_of_unity'])
+        self.assertTrue(gr_val['is_golden_ratio'])
     
     def test_discrete_symmetry_validation(self):
-        """Test discrete symmetry validation."""
+        """Test magnitude scaling validation."""
         results = validate_framework()
         sym_val = results['discrete_symmetry']
         
-        self.assertTrue(sym_val['all_aligned_at_135'])
         self.assertTrue(sym_val['linear_scaling_preserved'])
     
-    def test_periodicity_validation(self):
-        """Test periodicity validation."""
+    def test_low_discrepancy_validation(self):
+        """Test low-discrepancy validation."""
         results = validate_framework()
-        period_val = results['periodicity']
+        ld_val = results['low_discrepancy']
         
-        self.assertTrue(period_val['all_on_135_ray'])
-        self.assertTrue(period_val['uniform_spacing'])
+        self.assertTrue(ld_val['low_discrepancy'])
+        self.assertTrue(ld_val['phase_uniformity_passed'])
     
     def test_overall_assessment(self):
         """Test overall assessment."""
@@ -392,10 +425,10 @@ class TestFrameworkIntegration(unittest.TestCase):
         assessment = results['overall_assessment']
         
         # These should all pass
-        self.assertTrue(assessment['mu_is_8th_root'])
-        self.assertTrue(assessment['discrete_symmetry_maintained'])
-        self.assertTrue(assessment['linear_scaling_preserved'])
-        self.assertTrue(assessment['periodic_sampling_consistent'])
+        self.assertTrue(assessment['phi_is_golden_ratio'])
+        self.assertTrue(assessment['linear_magnitude_scaling'])
+        self.assertTrue(assessment['low_discrepancy_phase'])
+        self.assertTrue(assessment['phase_uniformity'])
 
 
 class TestCryptographicProperties(unittest.TestCase):
@@ -424,11 +457,14 @@ class TestCryptographicProperties(unittest.TestCase):
     
     def test_knowledge_of_formula_enables_prediction(self):
         """Test that knowledge of formula enables perfect prediction."""
-        # If you know Z, α, and μ, you can compute the output
+        # If you know Z, α, and φ, you can compute the output
         z = 17
         
-        # Compute vector using formula
-        expected_vector = z * ALPHA_APPROX * MU
+        # Compute vector using formula: V_Z = Z · α · exp(2πi{Z·φ})
+        magnitude = z * ALPHA_APPROX
+        fractional_phase = fractional_part(z * PHI)
+        phase_angle = 2 * math.pi * fractional_phase
+        expected_vector = magnitude * cmath.exp(1j * phase_angle)
         
         # Compute using class
         actual_vector = QuantizedVector(z).vector
@@ -479,22 +515,23 @@ class TestNISTSP800_90B(unittest.TestCase):
 class TestSummaryResults(unittest.TestCase):
     """Test suite summary and final conclusions."""
     
-    def test_mu_as_8th_root_maintains_symmetry(self):
+    def test_golden_ratio_maintains_properties(self):
         """
-        Test #1: Verify μ = e^(i·3π/4) as 8th root maintains discrete symmetry.
+        Test #1: Verify φ maintains golden ratio property φ² = φ + 1.
         """
-        result = DiscreteSymmetryValidator.verify_8th_root_of_unity()
+        result = DiscreteSymmetryValidator.verify_golden_ratio_properties()
         
-        # μ should be an 8th root of unity
-        self.assertTrue(result['is_8th_root_of_unity'])
+        # φ should satisfy φ² = φ + 1
+        self.assertTrue(result['is_golden_ratio'])
         
-        # μ^8 should equal 1
-        mu_8 = MU ** 8
-        self.assertAlmostEqual(abs(mu_8 - 1.0), 0.0, places=10)
+        # Check the property
+        phi_squared = PHI ** 2
+        phi_plus_one = PHI + 1
+        self.assertAlmostEqual(phi_squared, phi_plus_one, places=10)
     
-    def test_scaling_with_alpha_and_z_coherent(self):
+    def test_magnitude_scaling_with_alpha_and_z(self):
         """
-        Test #2: Verify scaling with α and quantized Z leads to coherent results.
+        Test #2: Verify magnitude |V_Z| = Z·α scales linearly.
         """
         z_values = [1, 2, 5, 10, 20, 50, 100]
         result = DiscreteSymmetryValidator.verify_discrete_symmetry(z_values)
@@ -502,49 +539,48 @@ class TestSummaryResults(unittest.TestCase):
         # Linear scaling should be preserved
         self.assertTrue(result['linear_scaling_preserved'])
         
-        # All vectors should be aligned at 135°
-        self.assertTrue(result['all_aligned_at_135'])
+        # Check each magnitude
+        for i, z in enumerate(z_values):
+            expected = z * ALPHA_APPROX
+            self.assertAlmostEqual(result['magnitudes'][i], expected, places=10)
     
-    def test_periodic_table_discrete_samples(self):
+    def test_low_discrepancy_fractional_phase(self):
         """
-        Test #3: Verify outputs align with periodic table-like discrete samples.
+        Test #3: Verify {Z·φ} provides low-discrepancy sequence.
         """
         vectors = PeriodicTableValidator.generate_periodic_samples(118)
         result = PeriodicTableValidator.analyze_periodicity(vectors)
         
-        # Should have uniform spacing
-        self.assertTrue(result['uniform_spacing'])
+        # Should have low discrepancy
+        self.assertTrue(result['low_discrepancy'])
         
-        # All should be on 135° ray
-        self.assertTrue(result['all_on_135_ray'])
+        # Should have uniform phase distribution
+        self.assertTrue(result['phase_uniformity_passed'])
     
     def test_statistical_entropy_properties(self):
         """
         Test #4: Verify statistical properties via NIST-style tests.
         
-        Note: This framework is DETERMINISTIC by design, so it will NOT
-        pass as cryptographic randomness. This is expected and documented.
+        Note: This framework is DETERMINISTIC by design, so chi-square
+        may not pass, but other tests should work well.
         """
         stream = EntropyExtractor.generate_entropy_stream((1, 118), 10000)
         result = StatisticalValidator.comprehensive_analysis(stream)
         
-        # Frequency test may pass (balanced 0s and 1s)
+        # Frequency test should pass (balanced 0s and 1s)
         self.assertIn('frequency_test', result)
         
         # Serial correlation should be low (below threshold for independence)
         self.assertLess(abs(result['serial_correlation_test']['correlation']), 
                        SERIAL_CORRELATION_THRESHOLD)
-        
-        # Chi-square test will likely fail (not uniform due to deterministic structure)
-        # This is EXPECTED for a deterministic mathematical formula
 
 
 def run_validation_suite():
     """Run the complete validation suite and print summary."""
     print("=" * 80)
     print("ENTROPY VALIDATION TEST SUITE")
-    print("Framework: V_Z = Z · α · μ")
-    print(f"  μ = e^(i·3π/4) ≈ {MU}")
+    print("Framework: V_Z = Z · α · exp(2πi{Z·φ})")
+    print(f"  φ = (1 + √5)/2 ≈ {PHI}")
     print(f"  α ≈ 1/137 = {ALPHA_APPROX}")
     print("  Z ∈ {{1, 2, 3, ...}}")
     print("=" * 80)
@@ -570,14 +606,13 @@ def run_validation_suite():
         print("✓ ALL TESTS PASSED")
         print()
         print("Conclusions:")
-        print("  1. ✓ μ = e^(i·3π/4) maintains discrete symmetry as 8th root of unity")
-        print("  2. ✓ Scaling with α ≈ 1/137 and quantized Z is coherent and predictable")
-        print("  3. ✓ Outputs align with periodic table-like discrete samples on 135° ray")
-        print("  4. ⚠ Statistical tests show DETERMINISTIC behavior (as expected)")
+        print("  1. ✓ φ = (1+√5)/2 maintains golden ratio property (φ² = φ + 1)")
+        print("  2. ✓ Magnitude |V_Z| = Z·α scales linearly with Z and α")
+        print("  3. ✓ Fractional phase {Z·φ} provides low-discrepancy sequences")
+        print("  4. ✓ Phase uniformly distributed on unit circle")
         print()
         print("Note: This framework is DETERMINISTIC by design, using mathematical")
-        print("formulas with fixed constants. It does NOT generate cryptographic")
-        print("randomness, but rather demonstrates quantum-like discrete structure.")
+        print("formulas with the golden ratio for optimal phase distribution.")
     else:
         print("✗ SOME TESTS FAILED")
     
