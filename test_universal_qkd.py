@@ -281,6 +281,33 @@ class TestUniversalQKD(unittest.TestCase):
 
         # All should be unique
         self.assertEqual(len(keys), 1000)
+    
+    def test_key_entropy_and_bias(self):
+        """Test that generated keys have good entropy and no bias."""
+        generator = universal_qkd_generator()
+        keys = [next(generator) for _ in range(50)]
+        
+        # Import entropy testing module
+        try:
+            from gq.entropy_testing import validate_zero_bias, EntropyAnalyzer
+            
+            # Test each key for bias
+            for i, key in enumerate(keys[:10]):  # Check first 10 keys
+                result = validate_zero_bias(key)
+                self.assertTrue(result['passes'],
+                              f"Key #{i} failed bias validation: {result['bias_types']}")
+            
+            # Test aggregate entropy
+            combined = b''.join(keys)
+            analyzer = EntropyAnalyzer(combined)
+            entropy = analyzer.shannon_entropy()
+            
+            # Should have good aggregate entropy
+            self.assertGreater(entropy, 7.5, 
+                             "Key stream does not have sufficient entropy")
+        except ImportError:
+            # Entropy testing module not available, skip
+            self.skipTest("Entropy testing module not available")
 
 
 class TestUniversalQKDCLI(unittest.TestCase):
