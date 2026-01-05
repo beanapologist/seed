@@ -49,6 +49,22 @@ jobs:
       run: |
         python -m unittest test_binary_verification -v
 
+    - name: Run Edge Cases tests (STL)
+      run: |
+        python -m unittest tests.test_edge_cases -v
+
+    - name: Run Cross-Platform Determinism tests (STL)
+      run: |
+        python -m unittest tests.test_cross_platform_determinism -v
+
+    - name: Run Multi-Seed Collision tests (STL)
+      run: |
+        python -m unittest tests.test_multi_seed_collision -v
+
+    - name: Run Quantum Seed Foundations tests
+      run: |
+        python -m unittest tests.test_quantum_seed_foundations -v
+
     - name: Verify first stream matches specification
       run: |
         FIRST_KEY=$(python -c "from gq import generate_universal_keys; print(generate_universal_keys(1)[0])")
@@ -192,3 +208,32 @@ jobs:
       run: |
         echo "Test suite completed successfully"
         echo "Note: Coverage reporting requires pytest"
+
+  scalability:
+    name: Scalability and Performance Tests
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: "3.11"
+
+    - name: Install package
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+
+    - name: Run Scalability tests (10K streams)
+      run: |
+        python -m unittest tests.test_scalability_stress.TestLargeScaleKeyGeneration.test_generate_10k_keys -v
+
+    - name: Run Performance benchmarks
+      run: |
+        python -m unittest tests.test_scalability_stress.TestPerformanceBenchmarks -v
+
+    - name: Run Memory efficiency tests
+      run: |
+        python -m unittest tests.test_scalability_stress.TestMemoryEfficiency -v
