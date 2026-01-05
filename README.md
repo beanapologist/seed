@@ -562,6 +562,65 @@ See the `qkd/` directory for Post-Quantum Secure key generation implementations:
 See the `checksum/` directory for verification tools:
 - **checksum/verify_binary_representation.py** - Binary verification with checksums
 
+## Runtime Validation and Entropy Testing
+
+This repository includes comprehensive runtime validation and entropy testing tools to ensure cryptographic quality:
+
+### Runtime Validation
+
+Monitor cryptographic operations in real-time during live deployments:
+
+```bash
+# Run basic validation
+python scripts/runtime_validation.py
+
+# Monitor continuously
+python scripts/runtime_validation.py --continuous
+
+# Custom monitoring
+python scripts/runtime_validation.py --rng-count 50 --kex-count 20
+```
+
+Features:
+- Real-time monitoring of random number generation
+- Cryptographic key exchange validation
+- Entropy quality metrics
+- Zero-bias detection
+- Complete operation logging
+
+See [docs/RUNTIME_VALIDATION.md](docs/RUNTIME_VALIDATION.md) for detailed documentation.
+
+### Dieharder Statistical Testing
+
+Comprehensive statistical validation using the industry-standard Dieharder test suite:
+
+```bash
+# Quick test of Universal QKD generator
+python scripts/dieharder_test.py --generator universal_qkd --tests sts_monobit --size 5MB
+
+# Test NIST PQC generators
+python scripts/dieharder_test.py --generator nist_pqc --algorithm kyber768 --tests all
+
+# Comprehensive test suite
+python scripts/dieharder_test.py --tests all --size 50MB
+```
+
+Features:
+- 30+ statistical tests from DIEHARD and NIST STS
+- Tests all cryptographic generators
+- Automated CI/CD integration
+- Detailed result analysis
+
+See [docs/DIEHARDER_TESTING.md](docs/DIEHARDER_TESTING.md) for detailed documentation.
+
+### CI/CD Integration
+
+Both runtime validation and Dieharder tests are integrated into the GitHub Actions workflow:
+- Automatic testing on every push
+- Scheduled comprehensive testing
+- Test result artifacts with 30-90 day retention
+- See `.github/workflows/runtime-validation.yml`
+
 ## Security
 
 See [SECURITY.md](SECURITY.md) for security policy and vulnerability reporting.
