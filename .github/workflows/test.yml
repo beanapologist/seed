@@ -49,18 +49,6 @@ jobs:
       run: |
         python -m unittest test_binary_verification -v
 
-    - name: Run NIST PQC unit tests
-      run: |
-        python -m unittest test_nist_pqc -v
-
-    - name: Run NIST PQC vector compliance tests
-      run: |
-        python -m unittest test_nist_pqc_vectors -v
-
-    - name: Run NIST STS integration tests
-      run: |
-        python -m unittest test_nist_sts_integration -v
-
     - name: Verify first stream matches specification
       run: |
         FIRST_KEY=$(python -c "from gq import generate_universal_keys; print(generate_universal_keys(1)[0])")

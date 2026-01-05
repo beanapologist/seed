@@ -14,7 +14,7 @@ on:
 
 jobs:
   nist-sts-universal:
-    name: NIST STS - Universal QKD
+    name: NIST STS - Universal Stream Generator
     runs-on: ubuntu-latest
     
     steps:
@@ -34,7 +34,7 @@ jobs:
     - name: Generate binary data for NIST testing
       run: |
         NUM_BITS=${{ github.event.inputs.num_bits || '1000000' }}
-        echo "Generating $NUM_BITS bits from Universal QKD..."
+        echo "Generating $NUM_BITS bits from Universal Stream Generator..."
         python scripts/generate_nist_binary.py -n $NUM_BITS -t universal -o data/nist_universal.txt
     
     - name: Run NIST Statistical Tests
@@ -58,7 +58,7 @@ jobs:
       if: always()
       run: |
         if [ -f results/nist_universal_results.json ]; then
-          echo "## NIST STS Results - Universal QKD" >> $GITHUB_STEP_SUMMARY
+          echo "## NIST STS Results - Universal Stream Generator" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           python scripts/display_nist_results.py results/nist_universal_results.json >> $GITHUB_STEP_SUMMARY
         fi
