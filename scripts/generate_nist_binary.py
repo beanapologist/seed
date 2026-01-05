@@ -2,8 +2,11 @@
 """
 Generate Binary Random Data for NIST STS Testing
 
-This script generates binary random data from the cryptographic generators
+This script generates binary random data from the deterministic stream generators
 in this repository for use with the NIST Statistical Test Suite (STS).
+
+⚠️ NOT FOR CRYPTOGRAPHY: This generates deterministic pseudo-random streams
+for testing purposes only.
 
 The binary file format is optimized for NIST STS processing.
 """
@@ -17,7 +20,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 try:
     from gq import generate_universal_keys, generate_gqs1_vectors
-    from gq import generate_kyber_seed, generate_dilithium_seed, generate_sphincs_seed
 except ImportError:
     print("ERROR: Unable to import gq module. Please install the package first:")
     print("  pip install -e .")
@@ -26,11 +28,11 @@ except ImportError:
 
 def generate_binary_sequence(num_sequences: int, sequence_type: str = "universal") -> bytes:
     """
-    Generate binary sequence from cryptographic generator.
+    Generate binary sequence from deterministic stream generator.
     
     Args:
-        num_sequences: Number of key sequences to generate
-        sequence_type: Type of generator ("universal", "gqs1", "kyber", "dilithium", "sphincs")
+        num_sequences: Number of stream sequences to generate
+        sequence_type: Type of generator ("universal", "gqs1")
     
     Returns:
         Binary data suitable for NIST STS testing
@@ -38,7 +40,7 @@ def generate_binary_sequence(num_sequences: int, sequence_type: str = "universal
     binary_data = bytearray()
     
     if sequence_type == "universal":
-        # Generate Universal QKD keys (GCP-1)
+        # Generate Universal deterministic streams
         keys = generate_universal_keys(num_sequences)
         for key_hex in keys:
             binary_data.extend(bytes.fromhex(key_hex))
@@ -48,27 +50,6 @@ def generate_binary_sequence(num_sequences: int, sequence_type: str = "universal
         vectors = generate_gqs1_vectors(num_sequences)
         for vector_hex in vectors:
             binary_data.extend(bytes.fromhex(vector_hex))
-            
-    elif sequence_type == "kyber":
-        # Generate Kyber-768 hybrid keys with varying context
-        for i in range(num_sequences):
-            context = f"NIST_TEST_{i}".encode()
-            _, pqc_seed = generate_kyber_seed(level=768, context=context)
-            binary_data.extend(pqc_seed)
-            
-    elif sequence_type == "dilithium":
-        # Generate Dilithium3 hybrid keys with varying context
-        for i in range(num_sequences):
-            context = f"NIST_TEST_{i}".encode()
-            _, pqc_seed = generate_dilithium_seed(level=3, context=context)
-            binary_data.extend(pqc_seed)
-            
-    elif sequence_type == "sphincs":
-        # Generate SPHINCS+-192f hybrid keys with varying context
-        for i in range(num_sequences):
-            context = f"NIST_TEST_{i}".encode()
-            _, pqc_seed = generate_sphincs_seed(level=192, context=context)
-            binary_data.extend(pqc_seed)
     else:
         raise ValueError(f"Unknown sequence type: {sequence_type}")
     
@@ -97,21 +78,15 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Generate 1 million bits from Universal QKD (default)
+  # Generate 1 million bits from Universal stream generator (default)
   python scripts/generate_nist_binary.py -n 1000000 -o data/random.txt
   
   # Generate 10 million bits from GQS-1
   python scripts/generate_nist_binary.py -n 10000000 -t gqs1 -o data/gqs1_random.txt
   
-  # Generate from Kyber PQC
-  python scripts/generate_nist_binary.py -n 1000000 -t kyber -o data/kyber_random.txt
-  
 Sequence Types:
-  universal   - Universal QKD (GCP-1) keys [16 bytes per key]
+  universal   - Universal deterministic stream generator [16 bytes per stream]
   gqs1       - GQS-1 test vectors [16 bytes per vector]
-  kyber      - Kyber-768 PQC seeds [32 bytes per seed]
-  dilithium  - Dilithium3 PQC seeds [32 bytes per seed]
-  sphincs    - SPHINCS+-192f PQC seeds [64 bytes per seed]
         """
     )
     
@@ -124,7 +99,7 @@ Sequence Types:
     
     parser.add_argument(
         '-t', '--type',
-        choices=['universal', 'gqs1', 'kyber', 'dilithium', 'sphincs'],
+        choices=['universal', 'gqs1'],
         default='universal',
         help='Type of generator to use (default: universal)'
     )
@@ -147,10 +122,7 @@ Sequence Types:
     # Calculate number of sequences needed
     bytes_per_sequence = {
         'universal': 16,
-        'gqs1': 16,
-        'kyber': 32,
-        'dilithium': 32,
-        'sphincs': 64
+        'gqs1': 16
     }
     
     bits_per_sequence = bytes_per_sequence[args.type] * 8
