@@ -44,3 +44,10 @@ Cargo.lock
 
 # Go
 go.sum
+
+# NIST STS Testing
+data/*.txt
+data/*.bin
+results/*.json
+nist-sts/
+
