@@ -1,10 +1,10 @@
 """
-Universal QKD Key Generator
+Universal Deterministic Key Generator
 
-A production-grade, deterministic quantum key distribution simulator that produces
-synchronized, secure keys across nodes without quantum hardware. This protocol
-leverages the golden seed (iφ) as a root of trust with language-agnostic,
-endian-independent implementation.
+A production-grade, deterministic key generation system that produces
+synchronized, secure keys across nodes using hash-based cryptography.
+This implementation uses a golden seed as a root of trust with 
+language-agnostic, endian-independent design.
 
 Protocol Specification (GCP-1 - Golden Consensus Protocol):
 
@@ -16,16 +16,19 @@ Layer 2: State Initialization
   - State = SHA256(Seed)
   - Counter = 0
 
-Layer 3: Entropy Generation and QKD Sifting
+Layer 3: Entropy Generation with Basis Matching Simulation
   - Loop until 256 sifted bits collected:
-    * Entropy = SHA256(State + Counter as string)
+    * Entropy = SHA256(State || Counter_string)
+      (where || denotes concatenation)
     * State = Entropy (ratchet for forward secrecy)
     * Counter += 1
     * For each byte in Entropy:
-      - If ((byte >> 1) & 1) == ((byte >> 2) & 1):  # Basis match
-        Append (byte & 1) to sifted_bits
+      - Check if bits match using: ((byte >> 1) & 1) == ((byte >> 2) & 1)
+      - This simulates basis matching with ~25-50% efficiency
+      - If bits match: Append (byte & 1) to sifted_bits
 
-Layer 4: Key Hardening and Output
+Layer 4: Key Hardening via XOR Folding
+  - Split 256 sifted bits into two 128-bit halves
   - For i = 0 to 127:
     Key_bit[i] = sifted_bits[i] XOR sifted_bits[i + 128]
   - Output 128-bit key (16 bytes)
@@ -34,7 +37,7 @@ Layer 4: Key Hardening and Output
 This implementation provides:
   - Cryptographic determinism for cross-implementation verification
   - Forward secrecy via state ratcheting
-  - Basis-matching simulation (~25-50% efficiency, mimicking quantum balance)
+  - Basis-matching simulation (~25-50% efficiency)
   - XOR folding for key hardening
 """
 
@@ -70,26 +73,47 @@ def verify_seed_checksum(seed: bytes) -> bool:
 
 def basis_match(byte: int) -> bool:
     """
-    Check if basis bits match for quantum sifting simulation.
+    Check if two specific bits match for sifting simulation.
 
-    Simulates BB84/E91 basis matching where Alice and Bob must use the same
-    measurement basis. The condition ((byte >> 1) & 1) == ((byte >> 2) & 1)
-    provides ~25-50% efficiency, mimicking quantum 1/√2 balance.
+    This function simulates a basis matching check by comparing bit 1 and bit 2
+    of a byte. When these bits are equal, we consider it a "match" and retain
+    bit 0 for the sifted output.
+
+    The condition ((byte >> 1) & 1) == ((byte >> 2) & 1) provides ~25-50%
+    efficiency, which simulates the probabilistic nature of basis matching
+    in quantum systems.
+
+    Mathematical explanation:
+    - (byte >> 1) & 1 extracts bit at position 1
+    - (byte >> 2) & 1 extracts bit at position 2
+    - When these are equal, we accept bit at position 0
 
     Args:
-        byte: Single byte from entropy source
+        byte: Single byte from entropy source (0-255)
 
     Returns:
-        True if basis bits match (bits 1 and 2 are equal)
+        True if bit 1 equals bit 2, False otherwise
     """
-    bit1 = (byte >> 1) & 1
-    bit2 = (byte >> 2) & 1
+    bit1 = (byte >> 1) & 1  # Extract bit at position 1
+    bit2 = (byte >> 2) & 1  # Extract bit at position 2
     return bit1 == bit2
 
 
 def collect_sifted_bits(state: bytes, counter: int) -> tuple[List[int], bytes, int]:
     """
-    Collect 256 sifted bits using basis-matching quantum simulation.
+    Collect 256 bits using basis-matching simulation.
+
+    This function repeatedly hashes the state to generate entropy, then
+    applies a basis-matching check to each byte. When the check passes,
+    we extract one bit for the output.
+
+    Process:
+    1. Concatenate state with counter (as string)
+    2. Hash with SHA-256 to get 32 bytes of entropy
+    3. Update state to hash output (forward secrecy)
+    4. For each byte, check if bits 1 and 2 match
+    5. If match: extract bit 0 and add to sifted_bits
+    6. Repeat until 256 bits collected
 
     Args:
         state: Current system state (32 bytes)
@@ -101,16 +125,16 @@ def collect_sifted_bits(state: bytes, counter: int) -> tuple[List[int], bytes, i
     sifted_bits = []
 
     while len(sifted_bits) < 256:
-        # Concatenate state with counter as string
+        # Concatenate state with counter as UTF-8 string
         counter_str = str(counter).encode('utf-8')
         data = state + counter_str
 
-        # Generate entropy and ratchet state
+        # Generate entropy and ratchet state for forward secrecy
         entropy = hashlib.sha256(data).digest()
         state = entropy
         counter += 1
 
-        # Apply basis matching for each byte
+        # Apply basis matching check for each byte
         for byte in entropy:
             if basis_match(byte):
                 # Extract bit 0 as the sifted bit
@@ -125,24 +149,32 @@ def collect_sifted_bits(state: bytes, counter: int) -> tuple[List[int], bytes, i
 
 def xor_fold_hardening(sifted_bits: List[int]) -> bytes:
     """
-    Apply XOR folding to harden 256 sifted bits into 128-bit key.
+    Apply XOR folding to harden 256 bits into a 128-bit key.
 
-    XOR folding provides information-theoretic hardening by combining
-    the first and second halves of the sifted bits.
+    XOR folding provides information-theoretic security by combining
+    the first and second halves of the sifted bits:
+    - For i = 0 to 127: key_bit[i] = sifted_bits[i] XOR sifted_bits[i+128]
+
+    This ensures an attacker needs to compromise both halves to
+    extract information about the original bits.
+
+    Mathematical formula:
+    key[i] = first_half[i] ⊕ second_half[i] for i = 0 to 127
+    (where ⊕ denotes XOR operation)
 
     Args:
-        sifted_bits: List of 256 bits (0 or 1)
+        sifted_bits: List of 256 bits (each element is 0 or 1)
 
     Returns:
         Hardened key (16 bytes = 128 bits)
     """
-    # XOR first half with second half
+    # XOR first half with second half bit by bit
     key_bits = []
     for i in range(128):
         bit = sifted_bits[i] ^ sifted_bits[i + 128]
         key_bits.append(bit)
 
-    # Convert bits to bytes
+    # Convert bit list to bytes (8 bits per byte, MSB first)
     key_bytes = bytearray()
     for i in range(0, 128, 8):
         byte = 0
@@ -155,11 +187,21 @@ def xor_fold_hardening(sifted_bits: List[int]) -> bytes:
 
 def universal_qkd_generator(seed_hex: str = HEX_SEED) -> Iterator[bytes]:
     """
-    Universal QKD key generator - infinite stream of 128-bit keys.
+    Universal deterministic key generator - infinite stream of 128-bit keys.
 
     This generator produces an infinite stream of cryptographically strong
     keys using the golden seed as root of trust. Each key is generated
-    through quantum basis-matching simulation and XOR folding hardening.
+    through hash-based entropy generation, basis-matching simulation,
+    and XOR folding hardening.
+
+    Key generation process:
+    1. Initialize state from seed using SHA-256
+    2. For each key:
+       a. Generate entropy via repeated SHA-256 hashing
+       b. Apply basis matching to simulate sifting (~25-50% efficiency)
+       c. Collect 256 sifted bits
+       d. Apply XOR folding to produce 128-bit key
+       e. Update state for forward secrecy
 
     Args:
         seed_hex: Hex string of the seed (default: golden seed iφ)
@@ -173,7 +215,7 @@ def universal_qkd_generator(seed_hex: str = HEX_SEED) -> Iterator[bytes]:
     # Initialize with seed
     seed = bytes.fromhex(seed_hex)
 
-    # Verify checksum
+    # Verify checksum for data integrity
     if not verify_seed_checksum(seed):
         raise ValueError(
             f"Seed checksum verification failed. "
@@ -187,10 +229,10 @@ def universal_qkd_generator(seed_hex: str = HEX_SEED) -> Iterator[bytes]:
 
     # Infinite stream
     while True:
-        # Layer 3: Entropy Generation and QKD Sifting
+        # Layer 3: Entropy Generation with Basis Matching
         sifted_bits, state, counter = collect_sifted_bits(state, counter)
 
-        # Layer 4: Key Hardening and Output
+        # Layer 4: Key Hardening via XOR Folding
         key = xor_fold_hardening(sifted_bits)
 
         yield key
@@ -222,7 +264,7 @@ def main():
     Main function for CLI interface.
     """
     parser = argparse.ArgumentParser(
-        description="Universal QKD Key Generator - Production-grade quantum key distribution simulator",
+        description="Universal Deterministic Key Generator - Production-grade hash-based key generation",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -235,7 +277,7 @@ Examples:
   %(prog)s --verify-only            # Verify seed integrity only
 
 Protocol: GCP-1 (Golden Consensus Protocol)
-Based on: BB84/E91 quantum basis matching with XOR folding hardening
+Based on: Hash-based entropy generation with basis matching simulation and XOR folding
         """
     )
 
@@ -285,7 +327,7 @@ Based on: BB84/E91 quantum basis matching with XOR folding hardening
     actual_checksum = hashlib.sha256(seed).hexdigest()
 
     if not args.quiet:
-        print("Universal QKD Key Generator (GCP-1)", file=sys.stderr)
+        print("Universal Deterministic Key Generator (GCP-1)", file=sys.stderr)
         print("=" * 60, file=sys.stderr)
         print(file=sys.stderr)
         print(f"Protocol: Golden Consensus Protocol v1.0", file=sys.stderr)

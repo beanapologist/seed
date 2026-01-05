@@ -2,14 +2,14 @@
 """
 Post-Quantum Secure Key Generator Service
 
-A SaaS-ready key generation service using Binary Fusion Tap technology
-with 8-fold Heartbeat and ZPE Overflow for cryptographically strong keys.
+A SaaS-ready key generation service using deterministic binary operations
+and cryptographic hash functions for generating strong keys.
 
 Designed for integration with NIST Post-Quantum Cryptography (PQC) standards
 including CRYSTALS-Kyber, CRYSTALS-Dilithium, and FrodoKEM.
 
 Features:
-- Multiple key generation algorithms (Binary Fusion, Hash-based, Hybrid)
+- Multiple key generation algorithms (Binary Tap, Hash-based, Hybrid)
 - Configurable key lengths (128, 256, 512 bits)
 - Built-in integrity verification with SHA256 checksums
 - Batch key generation
@@ -32,7 +32,8 @@ from checksum.verify_binary_representation import binary_fusion_tap, calculate_c
 
 class PQKeyGenerator:
     """
-    High-performance key generator using Binary Fusion Tap for post-quantum secure applications.
+    High-performance key generator using deterministic binary operations and
+    cryptographic hashing for post-quantum secure applications.
     Compatible with NIST PQC algorithms (Kyber, Dilithium, FrodoKEM).
     """
 
@@ -56,30 +57,37 @@ class PQKeyGenerator:
 
     def generate_fusion_key(self, k: int, salt: Optional[bytes] = None) -> Dict:
         """
-        Generate key using Binary Fusion Tap algorithm.
+        Generate key using binary tap operation with bit-shifting and hashing.
+
+        This method:
+        1. Generates a seed from digit sequence (1,2,3,...,k)
+        2. Applies bit-shift operation (multiply by 8)
+        3. Adds offset parameter k
+        4. Hashes the result to produce cryptographic key material
 
         Args:
-            k: Tap parameter (recommended: 11 for optimal entropy)
+            k: Offset parameter (recommended: 11 for this application)
             salt: Optional salt for additional randomization
 
         Returns:
             Dictionary containing key and metadata
         """
-        # Generate binary fusion tap
+        # Generate binary tap operation
         blueprint = binary_fusion_tap(k)
 
-        # Extract base entropy from tap state and ZPE overflow
+        # Extract computed values from tap operation
         tap_state = int(blueprint['tap_state'], 2)
-        zpe_overflow = blueprint['zpe_overflow_decimal']
+        diff_bits = blueprint['zpe_overflow_decimal']
 
-        # Combine tap state with ZPE overflow for enhanced entropy
-        combined = (tap_state << 16) | zpe_overflow
+        # Combine tap state with difference bits
+        # Shift tap_state left by 16 bits and OR with diff_bits
+        combined = (tap_state << 16) | diff_bits
 
-        # Add salt if provided
+        # Add salt if provided (XOR operation)
         if salt:
             combined ^= int.from_bytes(salt, byteorder='big')
 
-        # Hash to desired key length
+        # Hash to desired key length using SHA-512
         key_material = combined.to_bytes((combined.bit_length() + 7) // 8, byteorder='big')
         key_hash = hashlib.sha512(key_material).digest()
 
@@ -93,31 +101,36 @@ class PQKeyGenerator:
             'algorithm': 'fusion',
             'k_parameter': k,
             'tap_state': blueprint['tap_state'],
-            'zpe_overflow': blueprint['zpe_overflow'],
+            'zpe_overflow': blueprint['zpe_overflow'],  # Kept for compatibility
             'checksum': calculate_checksum(int(key_hex, 16), 'sha256')
         }
 
     def generate_hash_key(self, seed: Optional[int] = None) -> Dict:
         """
-        Generate key using cryptographic hash functions.
+        Generate key using cryptographic hash functions with key stretching.
+
+        This method uses iterated hashing (PBKDF2-like approach) to generate
+        cryptographically strong keys from a seed value.
 
         Args:
-            seed: Optional seed value (uses secure random if not provided)
+            seed: Optional seed value (uses cryptographically secure random if not provided)
 
         Returns:
             Dictionary containing key and metadata
         """
         if seed is None:
+            # Use cryptographically secure random number generator
             seed = secrets.randbits(256)
 
-        # Generate key using iterated hashing
+        # Generate key using iterated hashing (key stretching)
+        # This applies SHA-256 1000 times to strengthen the key
         key_material = seed.to_bytes(32, byteorder='big')
         for _ in range(1000):  # 1000 iterations for key stretching
             key_material = hashlib.sha256(key_material).digest()
 
         # Extract key of desired length
         if self.key_length > 256:
-            # Use SHA512 for longer keys
+            # Use SHA-512 for longer keys
             key_material = hashlib.sha512(key_material).digest()
 
         key_bytes = key_material[:self.key_length // 8]

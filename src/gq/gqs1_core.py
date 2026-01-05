@@ -2,15 +2,21 @@
 Golden Quantum Standard (GQS-1) Implementation
 
 This module implements the GQS-1 protocol for generating deterministic
-test vectors for quantum key distribution testing and compliance.
+test vectors using hash-based key derivation.
 
 Protocol Overview:
 1. Initialize system state S_0 with hex seed
 2. Verify SHA-256 checksum
-3. Use Hash-DRBG ratchet: S_{n+1} = SHA-256(S_n + Counter)
-4. Simulate quantum sifting (retain bits where Alice Basis == Bob Basis)
-5. Apply hardening via XOR folding (256 bits -> 128 bits)
-6. Output keys as hexadecimal strings
+3. Use Hash-DRBG ratchet: S_{n+1} = SHA-256(S_n || Counter)
+   (where || denotes concatenation)
+4. Apply XOR folding for key hardening (256 bits -> 128 bits)
+5. Output keys as hexadecimal strings
+
+Mathematical Operations:
+- Hash ratchet: Applies SHA-256 to concatenation of state and counter
+- XOR folding: Splits output into two halves and XORs them together
+  Result[i] = FirstHalf[i] XOR SecondHalf[i] for i = 0 to 127
+  This provides information-theoretic security by combining entropy
 """
 
 from __future__ import annotations
@@ -45,7 +51,11 @@ def verify_seed_checksum(seed: bytes) -> bool:
 
 def hash_drbg_ratchet(state: bytes, counter: int) -> bytes:
     """
-    Hash-DRBG ratchet function: S_{n+1} = SHA-256(S_n + Counter)
+    Hash-DRBG ratchet function: S_{n+1} = SHA-256(S_n || Counter)
+    
+    This function implements a forward-secure state progression using
+    cryptographic hashing. The state is updated by hashing the concatenation
+    of the current state and a counter value.
     
     Args:
         state: Current state S_n (32 bytes)
@@ -55,44 +65,49 @@ def hash_drbg_ratchet(state: bytes, counter: int) -> bytes:
         Next state S_{n+1} (32 bytes)
     """
     counter_bytes = counter.to_bytes(4, byteorder='big')
-    combined = state + counter_bytes
+    combined = state + counter_bytes  # Concatenate state and counter
     return hashlib.sha256(combined).digest()
 
 
 def simulate_quantum_sifting(raw_bits: bytes) -> bytes:
     """
-    Simulate quantum sifting by retaining bits where Alice basis == Bob basis.
+    Pass through the hash output for deterministic key generation.
     
-    In a real QKD system, Alice and Bob randomly choose measurement bases.
-    For deterministic test vectors, we simulate basis matching:
-    - We use the state to generate both "Alice bits" and "Bob bits"
-    - We also generate basis selections deterministically
-    - Retain bits where bases match
+    In a real quantum key distribution system, Alice and Bob would randomly
+    choose measurement bases and discard bits where their bases don't match.
+    This creates the "sifted key" from raw quantum measurements.
     
-    For this implementation, we'll use a simplified model:
-    - Take the first 256 bits as Alice's raw measurements
-    - Take bits at even positions (basis matching simulation)
+    For deterministic test vectors in GQS-1, we skip this probabilistic
+    step and use the full hash output directly. The XOR folding step
+    provides the necessary key hardening.
     
     Args:
         raw_bits: Raw bits from DRBG (32 bytes = 256 bits)
         
     Returns:
-        Sifted bits (still 32 bytes, but conceptually only "matched" bits are used)
+        Output bits (32 bytes) - passed through unchanged for deterministic behavior
     """
-    # For deterministic test vectors, we use a simple basis matching model
-    # In practice, this simulates the case where ~50% of bits have matching bases
-    # For simplicity in test vectors, we retain all bits from the DRBG output
-    # and apply the hardening step to achieve the final 128-bit key
+    # For deterministic test vectors, we use all bits from the DRBG output
+    # The XOR folding step provides information-theoretic hardening
     return raw_bits
 
 
 def xor_fold_hardening(bits: bytes) -> bytes:
     """
-    Apply XOR folding to harden 256 bits into 128 bits.
+    Apply XOR folding to compress 256 bits into 128 bits with hardening.
     
-    XOR folding provides information-theoretic hardening:
-    - Split 256 bits into two 128-bit halves
-    - XOR them together to produce final 128-bit key
+    XOR folding provides information-theoretic security by combining
+    two halves of the input:
+    - Split 256 bits into two 128-bit halves: A and B
+    - Compute C = A XOR B
+    - Output C as the hardened 128-bit key
+    
+    This operation ensures that an attacker needs to compromise both
+    halves to reconstruct information, providing key hardening.
+    
+    Mathematical formula:
+    For i = 0 to 15 (bytes):
+        result[i] = first_half[i] XOR second_half[i]
     
     Args:
         bits: Input bits (32 bytes = 256 bits)
@@ -101,10 +116,10 @@ def xor_fold_hardening(bits: bytes) -> bytes:
         Hardened key (16 bytes = 128 bits)
     """
     half_len = len(bits) // 2
-    first_half = bits[:half_len]
-    second_half = bits[half_len:]
+    first_half = bits[:half_len]   # First 128 bits
+    second_half = bits[half_len:]  # Second 128 bits
     
-    # XOR the two halves
+    # XOR the two halves byte by byte
     hardened = bytes(a ^ b for a, b in zip(first_half, second_half))
     return hardened
 
@@ -113,6 +128,11 @@ def generate_key(state: bytes, counter: int) -> tuple[bytes, bytes]:
     """
     Generate a single hardened 128-bit key from the current state.
     
+    Process:
+    1. Apply Hash-DRBG ratchet to advance state: S_{n+1} = SHA-256(S_n || Counter)
+    2. Use the new state as 256-bit intermediate material
+    3. Apply XOR folding to compress to 128 bits: key = first_half XOR second_half
+    
     Args:
         state: Current system state (32 bytes)
         counter: Counter for this key generation
@@ -120,14 +140,14 @@ def generate_key(state: bytes, counter: int) -> tuple[bytes, bytes]:
     Returns:
         Tuple of (hardened_key, next_state)
     """
-    # Apply Hash-DRBG ratchet
+    # Apply Hash-DRBG ratchet to get next state
     next_state = hash_drbg_ratchet(state, counter)
     
-    # Simulate quantum sifting (for test vectors, this is deterministic)
-    sifted_bits = simulate_quantum_sifting(next_state)
+    # Pass through for deterministic behavior (no probabilistic sifting)
+    output_bits = simulate_quantum_sifting(next_state)
     
-    # Apply XOR folding hardening
-    hardened_key = xor_fold_hardening(sifted_bits)
+    # Apply XOR folding to compress 256 bits to 128 bits
+    hardened_key = xor_fold_hardening(output_bits)
     
     return hardened_key, next_state
 

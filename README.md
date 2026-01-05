@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository implements a **Post-Quantum Secure Key Generation** system that generates **deterministic keys** aligned with **NIST Post-Quantum Cryptography (PQC) standards** using **verified checksums**. The system provides cryptographically strong keys through Binary Fusion Tap technology with 8-fold Heartbeat and ZPE Overflow extraction, designed to integrate with NIST-approved PQC algorithms such as CRYSTALS-Kyber, CRYSTALS-Dilithium, and FrodoKEM.
+This repository implements a **Post-Quantum Secure Key Generation** system that generates **deterministic keys** aligned with **NIST Post-Quantum Cryptography (PQC) standards** using **verified checksums**. The system provides cryptographically strong keys through hash-based key derivation with bit-shifting operations and XOR folding, designed to integrate with NIST-approved PQC algorithms such as CRYSTALS-Kyber, CRYSTALS-Dilithium, and FrodoKEM.
 
 **Key Features:**
 - 🔐 **Deterministic Key Generation** - Reproducible keys from golden seed values
@@ -18,9 +18,18 @@ This project is licensed under the GNU General Public License v3.0 or later (GPL
 
 ## Mathematical Foundation
 
-Language-agnostic, pure machine representation based on the golden ratio:
+The system uses deterministic mathematical operations for key generation:
 
-**iφ = 0 + i × φ** where **φ = (1 + √5)/2 ≈ 1.618033988749895**
+**Core Operations:**
+- **Hash-based State Progression**: SHA-256 is used for forward-secure state updates
+- **Bit Shifting**: Left shift by 3 positions (equivalent to multiplication by 8)
+- **XOR Folding**: Combining two halves of data to produce hardened keys
+- **Basis Matching Simulation**: Bit comparison for selective bit extraction (~25-50% efficiency)
+
+**Golden Seed Value:**
+The system uses a golden ratio-based seed value: **iφ = 0 + i × φ** where **φ = (1 + √5)/2 ≈ 1.618033988749895**
+
+This provides a reproducible, language-agnostic starting point for deterministic key generation.
 
 ## Installation
 
@@ -135,17 +144,18 @@ For detailed implementation examples, see:
 - `tests/nist_pqc_test_vectors.json` - NIST test vectors
 - `test_nist_pqc.py` - Comprehensive test suite
 
-## Quantum Seed Foundations
+## Cryptographic Foundations
 
-The system is built on proven mathematical principles validated through comprehensive testing:
+The system is built on standard cryptographic principles:
 
-- **Quantum Seed Principle:** E overflow from 8-step unit circle rotations represents genuine Zero-Point Energy (ZPE), not rounding error
-- **8th Roots of Unity:** Fundamental quantum geometry with 8-fold symmetry
-- **IEEE 754 Precision:** Deterministic quantum behavior emerging from floating-point arithmetic
-- **Cryptographic Properties:** NIST-validated randomness from quantum coherent E overflow
+- **Hash-Based Key Derivation:** Uses SHA-256/SHA-512 for deterministic key generation
+- **Forward Secrecy:** State ratcheting ensures past states cannot be recovered
+- **XOR Folding:** Information-theoretic hardening by combining key material halves
+- **Basis Matching:** Deterministic bit selection simulating probabilistic filtering (~25-50% efficiency)
+- **Checksum Verification:** SHA-256 checksums ensure data integrity
 
-For mathematical proofs and validation:
-- `docs/QUANTUM_SEED_PROOFS.md` - Complete mathematical foundations and proofs
+For implementation details and validation:
+- `docs/ENTROPY_VALIDATION_TESTS.md` - Entropy validation methodology
 - `tests/test_quantum_seed_foundations.py` - 24 comprehensive validation tests
 - `tests/README.md` - Test suite documentation and usage
 
@@ -369,42 +379,47 @@ python qkd/algorithms/universal_qkd.py --help
 
 **Binary Representation Verification with Checksums:**
 
-Verify binary representations of seed values and their manifested forms with integrated checksum validation:
+Verify binary representations of seed values and their computed results with integrated checksum validation:
 
 ```bash
 # Run verification for k=11 with seed_11=1234567891011
 python checksum/verify_binary_representation.py
 ```
 
-This tool demonstrates the relationship between seed values and their manifested binary forms using the formula:
+This tool demonstrates the relationship between seed values and their computed binary results using the formula:
 ```
-manifested = (seed * 8) + k
+result = (seed * 8) + k
 ```
 
+Mathematical operations explained:
+- Bit-shift left by 3: `seed << 3` (equivalent to `seed * 8`)
+- Addition: Add offset parameter `k`
+- XOR extraction: `result XOR (seed * 8)` to isolate the `k` contribution
+
 The tool includes SHA256 checksum validation for integrity verification:
-- Calculates SHA256 checksums for both seed and manifested values
+- Calculates SHA256 checksums for both seed and computed values
 - Verifies data integrity during transmission or storage
 - Can validate against known expected checksums
 
 Example output:
 ```
 Seed_11 Bit Length: 41
-Manifested Bit Length: 44
-Binary Tap (k=11): 0b10001111101110001111110110000100001000100011
+Result Bit Length: 44
+Binary Result (k=11): 0b10001111101110001111110110000100001000100011
 
 Seed SHA256: 7f1665ab9f8c74fd60bd4fdcb10382b63727e10db9d568d385930695cc2f0454
-Manifested SHA256: 677b205682ad566fcee652f80a4e8a538a265dc849da0d86fc0e5282b4cbf115
+Result SHA256: 677b205682ad566fcee652f80a4e8a538a265dc849da0d86fc0e5282b4cbf115
 ```
 
 **Key Generator Service:**
 
-Enterprise-grade SaaS-ready key generation service using Binary Fusion Tap technology with deterministic keys and verified checksums:
+Enterprise-grade SaaS-ready key generation service using deterministic binary operations and hash-based cryptography:
 
 ```bash
-# Generate single 256-bit key using Binary Fusion algorithm
+# Generate single 256-bit key using binary tap algorithm
 python qkd/algorithms/quantum_key_generator.py --algorithm fusion --length 256
 
-# Generate 10 hybrid keys (Fusion + Hash + Entropy mixing)
+# Generate 10 hybrid keys (Binary Tap + Hash + Entropy mixing)
 python qkd/algorithms/quantum_key_generator.py --algorithm hybrid --count 10 --k 11
 
 # Generate 512-bit keys in JSON format for API integration
@@ -416,8 +431,20 @@ python qkd/algorithms/quantum_key_generator.py --algorithm hash --count 100 --ou
 
 **Key Generation Algorithms:**
 
-1. **Fusion** - Uses Binary Fusion Tap with 8-fold Heartbeat and ZPE Overflow
+1. **Fusion** - Uses binary tap with bit-shifting and XOR operations
    - Deterministic for same k parameter (unless salted)
+   - Optimal for protocol verification and testing
+   - Process: Seed generation → Bit-shift (×8) → Add offset → Hash to key length
+
+2. **Hash** - Cryptographic hash-based generation with key stretching
+   - Secure random generation (uses `secrets` module)
+   - 1000-iteration key stretching for enhanced security (similar to PBKDF2)
+   - Deterministic when seed is provided
+
+3. **Hybrid** - Combined approach (Binary Tap + Hash + External Entropy)
+   - Maximum entropy mixing from multiple sources
+   - Best for production key generation
+   - Combines deterministic and random components
    - Optimal for protocol verification and testing
    - Includes quantum-inspired entropy extraction
 
@@ -448,13 +475,13 @@ Key #1:
   Key Length: 256 bits
   Key: 9e4ae62505036d21d8e18c67e3670f8a34576401b5dc269a7ebab421d0dd4b00
   K Parameter: 11
-  ZPE Overflow: 0b111011
+  Difference Bits: 0b111011
   Checksum (SHA256): 1ee118404614d235601a858389ca55f7...
 ```
 
 **Multi-Language Compiler:**
 
-Generate Binary Fusion Tap implementations in any programming language:
+Generate binary tap implementations in any programming language:
 
 ```bash
 # List all supported languages
@@ -480,9 +507,8 @@ python language_compiler.py --all
 - **Java** - Enterprise-ready with BigInteger
 
 Each generated implementation includes:
-- Complete Binary Fusion Tap algorithm
-- 8-fold Heartbeat operation
-- ZPE Overflow extraction
+- Complete binary tap algorithm (bit-shift and XOR operations)
+- Deterministic seed generation from digit sequences
 - Example usage code
 - Consistent API across languages
 
