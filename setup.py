@@ -1,9 +1,8 @@
 """
-Golden Quantum (GQ) Package Setup
+GoldenSeed Package Setup
 
-Production-grade Post-Quantum Secure Key Generation package implementing the Golden Consensus Protocol (GCP-1)
-and Golden Standard (GQS-1) for deterministic key generation with verified checksums, aligned with NIST 
-Post-Quantum Cryptography (PQC) standards for integration with Kyber, Dilithium, and FrodoKEM.
+Deterministic high-entropy byte stream generation library for procedural content generation,
+reproducible testing, and space-efficient storage. NOT FOR CRYPTOGRAPHIC USE.
 """
 
 from setuptools import setup, find_packages
@@ -14,9 +13,9 @@ this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text(encoding='utf-8')
 
 setup(
-    name="golden-quantum",
-    version="2.0.0",
-    description="Post-Quantum Secure Key Generation - Deterministic Keys with Verified Checksums, aligned with NIST PQC standards (Kyber, Dilithium, FrodoKEM) - GCP-1 & GQS-1",
+    name="golden-seed",
+    version="3.0.0",
+    description="GoldenSeed — Infinite reproducible high-entropy streams from tiny fixed seeds. For procedural generation, reproducible testing, and deterministic simulations. NOT FOR CRYPTOGRAPHY.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="beanapologist",
@@ -24,7 +23,7 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     python_requires=">=3.8",
-    install_requires=[],  # Zero dependencies for maximum security
+    install_requires=[],  # Zero dependencies for maximum portability
     extras_require={
         "dev": [
             "pytest>=7.0",
@@ -41,8 +40,9 @@ setup(
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
-        "Topic :: Security :: Cryptography",
         "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Games/Entertainment",
+        "Topic :: Scientific/Engineering",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
@@ -52,7 +52,7 @@ setup(
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
         "Operating System :: OS Independent",
     ],
-    keywords="post-quantum-cryptography pqc nist-pqc kyber dilithium frodokem deterministic-key checksum quantum-resistant cryptography consensus blockchain gcp gqs binary-fusion-tap checksums verified-keys",
+    keywords="procedural-generation deterministic prng reproducible-testing pseudo-random deterministic-streams consensus golden-ratio procedural-content space-efficient-storage game-development simulation testing",
     project_urls={
         "Bug Reports": "https://github.com/beanapologist/seed/issues",
         "Source": "https://github.com/beanapologist/seed",
