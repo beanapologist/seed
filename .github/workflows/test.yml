@@ -57,6 +57,10 @@ jobs:
       run: |
         python -m unittest test_nist_pqc_vectors -v
 
+    - name: Run NIST STS integration tests
+      run: |
+        python -m unittest test_nist_sts_integration -v
+
     - name: Verify GCP-1 first key matches specification
       run: |
         FIRST_KEY=$(python -c "from gq import generate_universal_keys; print(generate_universal_keys(1)[0])")

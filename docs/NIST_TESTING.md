@@ -169,6 +169,24 @@ Example JSON output:
 
 ## CI/CD Integration
 
+### Automated Testing
+
+The repository includes integration tests that verify the NIST STS workflow:
+
+```bash
+# Run integration tests locally
+python -m unittest test_nist_sts_integration -v
+
+# Or as part of the full test suite
+python -m unittest discover
+```
+
+These tests verify:
+- Scripts exist and are executable
+- Binary data generation works for all generators
+- NIST tests run successfully
+- Results have correct JSON structure
+
 ### GitHub Actions Workflow
 
 The repository includes a GitHub Actions workflow (`.github/workflows/nist-sts.yml`) that:
