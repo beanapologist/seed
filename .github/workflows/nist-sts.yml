@@ -1,0 +1,205 @@
+name: NIST Statistical Test Suite
+
+on:
+  push:
+    branches: [ main, develop, claude/** ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      num_bits:
+        description: 'Number of bits to test'
+        required: false
+        default: '1000000'
+
+jobs:
+  nist-sts-universal:
+    name: NIST STS - Universal QKD
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+    
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: "3.11"
+    
+    - name: Install package
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+    
+    - name: Generate binary data for NIST testing
+      run: |
+        NUM_BITS=${{ github.event.inputs.num_bits || '1000000' }}
+        echo "Generating $NUM_BITS bits from Universal QKD..."
+        python scripts/generate_nist_binary.py -n $NUM_BITS -t universal -o data/nist_universal.txt
+    
+    - name: Run NIST Statistical Tests
+      run: |
+        python scripts/run_nist_tests.py \
+          -i data/nist_universal.txt \
+          -o results/nist_universal_results.json \
+          --alpha 0.01
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: nist-sts-universal-results
+        path: |
+          results/nist_universal_results.json
+          data/nist_universal.txt
+        retention-days: 30
+    
+    - name: Display results summary
+      if: always()
+      run: |
+        if [ -f results/nist_universal_results.json ]; then
+          echo "## NIST STS Results - Universal QKD" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          python -c "
+          import json
+          with open('results/nist_universal_results.json') as f:
+              r = json.load(f)
+          
+          print('### Summary')
+          print(f\"- Total bits: {r['metadata']['total_bits']:,}\")
+          print(f\"- Tests passed: {r['summary']['passed']}/{r['summary']['total_tests']}\")
+          print(f\"- Pass rate: {r['summary']['pass_rate']*100:.1f}%\")
+          print(f\"- Overall: {'✓ PASSED' if r['summary']['overall_passed'] else '✗ FAILED'}\")
+          print()
+          print('### Test Details')
+          print('| Test | P-Value | Status |')
+          print('|------|---------|--------|')
+          for name, result in r['tests'].items():
+              status = '✓' if result['passed'] else '✗'
+              print(f\"| {name} | {result['p_value']:.6f} | {status} {result['status']} |\")
+          " >> $GITHUB_STEP_SUMMARY
+        fi
+
+  nist-sts-pqc:
+    name: NIST STS - PQC Algorithms
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        algorithm: [kyber, dilithium, sphincs]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+    
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: "3.11"
+    
+    - name: Install package
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+    
+    - name: Generate binary data for NIST testing
+      run: |
+        NUM_BITS=${{ github.event.inputs.num_bits || '1000000' }}
+        echo "Generating $NUM_BITS bits from ${{ matrix.algorithm }}..."
+        python scripts/generate_nist_binary.py \
+          -n $NUM_BITS \
+          -t ${{ matrix.algorithm }} \
+          -o data/nist_${{ matrix.algorithm }}.txt
+    
+    - name: Run NIST Statistical Tests
+      run: |
+        python scripts/run_nist_tests.py \
+          -i data/nist_${{ matrix.algorithm }}.txt \
+          -o results/nist_${{ matrix.algorithm }}_results.json \
+          --alpha 0.01
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: nist-sts-${{ matrix.algorithm }}-results
+        path: |
+          results/nist_${{ matrix.algorithm }}_results.json
+          data/nist_${{ matrix.algorithm }}.txt
+        retention-days: 30
+    
+    - name: Display results summary
+      if: always()
+      run: |
+        ALGO_UPPER=$(echo "${{ matrix.algorithm }}" | tr '[:lower:]' '[:upper:]')
+        if [ -f results/nist_${{ matrix.algorithm }}_results.json ]; then
+          echo "## NIST STS Results - $ALGO_UPPER" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          python -c "
+          import json
+          with open('results/nist_${{ matrix.algorithm }}_results.json') as f:
+              r = json.load(f)
+          
+          print('### Summary')
+          print(f\"- Total bits: {r['metadata']['total_bits']:,}\")
+          print(f\"- Tests passed: {r['summary']['passed']}/{r['summary']['total_tests']}\")
+          print(f\"- Pass rate: {r['summary']['pass_rate']*100:.1f}%\")
+          print(f\"- Overall: {'✓ PASSED' if r['summary']['overall_passed'] else '✗ FAILED'}\")
+          print()
+          print('### Test Details')
+          print('| Test | P-Value | Status |')
+          print('|------|---------|--------|')
+          for name, result in r['tests'].items():
+              status = '✓' if result['passed'] else '✗'
+              print(f\"| {name} | {result['p_value']:.6f} | {status} {result['status']} |\")
+          " >> $GITHUB_STEP_SUMMARY
+        fi
+
+  nist-sts-validation:
+    name: Validate NIST STS Results
+    runs-on: ubuntu-latest
+    needs: [nist-sts-universal, nist-sts-pqc]
+    if: always()
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+    
+    - name: Validate all results
+      run: |
+        echo "## NIST STS Validation Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        TOTAL_PASSED=0
+        TOTAL_FAILED=0
+        
+        for result_file in artifacts/*/results/*.json; do
+          if [ -f "$result_file" ]; then
+            echo "Checking: $result_file"
+            
+            # Extract algorithm name from path
+            ALGO=$(basename $(dirname $(dirname "$result_file")))
+            
+            # Check if tests passed
+            if grep -q '"overall_passed": true' "$result_file"; then
+              echo "✓ $ALGO: PASSED" >> $GITHUB_STEP_SUMMARY
+              TOTAL_PASSED=$((TOTAL_PASSED + 1))
+            else
+              echo "✗ $ALGO: FAILED" >> $GITHUB_STEP_SUMMARY
+              TOTAL_FAILED=$((TOTAL_FAILED + 1))
+            fi
+          fi
+        done
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Total: $TOTAL_PASSED passed, $TOTAL_FAILED failed**" >> $GITHUB_STEP_SUMMARY
+        
+        if [ $TOTAL_FAILED -gt 0 ]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ Some NIST STS tests failed. Review the detailed results in the artifacts." >> $GITHUB_STEP_SUMMARY
+          exit 1
+        else
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✓ All NIST STS tests passed!" >> $GITHUB_STEP_SUMMARY
+        fi
