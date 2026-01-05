@@ -83,22 +83,22 @@ def test_dieharder_components():
     # Test data generation - Universal QKD
     print("\n2. Testing Universal QKD data generation...")
     generator = UniversalQKD()
-    data = bytearray()
+    crypto_data = bytearray()
     for i in range(10):
         key = next(generator)
-        data.extend(key)
-    assert len(data) == 160  # 10 keys * 16 bytes
-    print(f"   ✓ Generated {len(data)} bytes from Universal QKD")
+        crypto_data.extend(key)
+    assert len(crypto_data) == 160  # 10 keys * 16 bytes
+    print(f"   ✓ Generated {len(crypto_data)} bytes from Universal QKD")
     
     # Test data generation - NIST PQC
     print("\n3. Testing NIST PQC data generation...")
-    data = bytearray()
+    crypto_data = bytearray()
     for i in range(5):
         det_key, pqc_seed = generate_hybrid_key(PQCAlgorithm.KYBER768)
-        data.extend(det_key)
-        data.extend(pqc_seed)
-    assert len(data) == 240  # 5 * (16 + 32) bytes
-    print(f"   ✓ Generated {len(data)} bytes from NIST PQC")
+        crypto_data.extend(det_key)
+        crypto_data.extend(pqc_seed)
+    assert len(crypto_data) == 240  # 5 * (16 + 32) bytes
+    print(f"   ✓ Generated {len(crypto_data)} bytes from NIST PQC")
     
     return True
 

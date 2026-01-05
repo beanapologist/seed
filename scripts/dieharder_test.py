@@ -183,12 +183,13 @@ class DieharderTester:
             print(f"Data Size: {len(data):,} bytes")
             print(f"{'='*60}\n")
         
-        # Write data to temporary file
-        with tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix='.bin') as tmp:
-            tmp.write(data)
-            tmp_path = tmp.name
-            
+        # Create temporary file and ensure cleanup
+        tmp_fd, tmp_path = tempfile.mkstemp(suffix='.bin')
         try:
+            # Write data to temporary file
+            os.write(tmp_fd, data)
+            os.close(tmp_fd)
+            
             # Run dieharder with the data file
             cmd = [
                 'dieharder',
@@ -226,10 +227,19 @@ class DieharderTester:
                     
             return test_results
             
+        except Exception as e:
+            if self.verbose:
+                print(f"\n⚠ Error during Dieharder test: {e}")
+            raise
         finally:
-            # Clean up temporary file
-            if os.path.exists(tmp_path):
-                os.unlink(tmp_path)
+            # Clean up temporary file - guaranteed to run
+            try:
+                if os.path.exists(tmp_path):
+                    os.unlink(tmp_path)
+            except Exception as cleanup_error:
+                # Log but don't fail on cleanup errors
+                if self.verbose:
+                    print(f"Warning: Could not cleanup temporary file {tmp_path}: {cleanup_error}")
                 
     def _parse_dieharder_output(self, output: str) -> dict:
         """

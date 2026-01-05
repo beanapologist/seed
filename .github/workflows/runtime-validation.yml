@@ -42,13 +42,7 @@ jobs:
           echo "✓ Runtime validation completed successfully"
           echo ""
           echo "Summary:"
-          python -c "
-        import json
-        with open('runtime_validation_results.json', 'r') as f:
-            data = json.load(f)
-        print(f\"Total operations: {data['total_operations']}\")
-        print(f\"Time range: {data['start_time']} to {data['end_time']}\")
-          "
+          python scripts/display_validation_summary.py runtime_validation_results.json
         else
           echo "ERROR: Validation results not found"
           exit 1

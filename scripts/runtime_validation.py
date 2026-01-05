@@ -153,7 +153,9 @@ class CryptoOperationMonitor:
             algorithm = algorithms[i % len(algorithms)]
             
             start = time.time()
-            det_key, pqc_seed = generate_hybrid_key(algorithm, context=f"EXCHANGE_{i}".encode())
+            # Create context with operation identifier for better traceability
+            context = f"EXCHANGE_{i}".encode()
+            det_key, pqc_seed = generate_hybrid_key(algorithm, context=context)
             duration = time.time() - start
             
             # Analyze entropy of both components
