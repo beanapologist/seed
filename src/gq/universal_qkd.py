@@ -1,12 +1,17 @@
 """
-Universal Deterministic Key Generator
+Universal Deterministic Stream Generator
 
-A production-grade, deterministic key generation system that produces
-synchronized, secure keys across nodes using hash-based cryptography.
-This implementation uses a golden seed as a root of trust with 
-language-agnostic, endian-independent design.
+A production-grade deterministic byte stream generation system that produces
+synchronized output across systems. This implementation uses mathematical
+constant seeds with language-agnostic, endian-independent design.
 
-Protocol Specification (GCP-1 - Golden Consensus Protocol):
+⚠️ NOT FOR CRYPTOGRAPHY: This generates deterministic pseudo-random streams
+and must NOT be used for cryptographic purposes (passwords, keys, etc.).
+
+Suitable for: procedural generation, reproducible testing, deterministic
+simulations, consensus randomness, and space-efficient storage.
+
+Protocol Specification:
 
 Layer 1: Root Seed
   - Seed Hex: 0000000000000000a8f4979b77e3f93fa8f4979b77e3f93fa8f4979b77e3f93f
@@ -16,29 +21,29 @@ Layer 2: State Initialization
   - State = SHA256(Seed)
   - Counter = 0
 
-Layer 3: Entropy Generation with Basis Matching Simulation
+Layer 3: Stream Generation with Basis Matching Simulation
   - Loop until 256 sifted bits collected:
     * Entropy = SHA256(State || Counter_string)
       (where || denotes concatenation)
-    * State = Entropy (ratchet for forward secrecy)
+    * State = Entropy (ratchet for forward progression)
     * Counter += 1
     * For each byte in Entropy:
       - Check if bits match using: ((byte >> 1) & 1) == ((byte >> 2) & 1)
       - This simulates basis matching with ~25-50% efficiency
       - If bits match: Append (byte & 1) to sifted_bits
 
-Layer 4: Key Hardening via XOR Folding
+Layer 4: Output via XOR Folding
   - Split 256 sifted bits into two 128-bit halves
   - For i = 0 to 127:
-    Key_bit[i] = sifted_bits[i] XOR sifted_bits[i + 128]
-  - Output 128-bit key (16 bytes)
-  - Stream continues indefinitely for subsequent keys
+    Output_bit[i] = sifted_bits[i] XOR sifted_bits[i + 128]
+  - Output 128-bit stream (16 bytes)
+  - Stream continues indefinitely for subsequent outputs
 
 This implementation provides:
-  - Cryptographic determinism for cross-implementation verification
-  - Forward secrecy via state ratcheting
+  - Determinism for cross-implementation verification
+  - State progression via ratcheting
   - Basis-matching simulation (~25-50% efficiency)
-  - XOR folding for key hardening
+  - XOR folding for output variation
 """
 
 from __future__ import annotations
@@ -47,14 +52,34 @@ import argparse
 import hashlib
 import json
 import sys
+import struct
 from typing import Iterator, List
 
+# Mathematical constants as seeds (IEEE 754 double precision, little-endian)
+# These can be used as alternative seeds for different applications
 
-# Expected SHA-256 checksum for the seed
+# Golden Ratio: φ = (1 + √5)/2 ≈ 1.618033988749895
+GOLDEN_RATIO = 1.618033988749894848204586834365638117720309179805762862135
+GOLDEN_RATIO_HEX = "0000000000000000a8f4979b77e3f93fa8f4979b77e3f93fa8f4979b77e3f93f"
+
+# Pi: π ≈ 3.14159265358979323846
+PI = 3.141592653589793238462643383279502884197169399375105820974
+PI_HEX = struct.pack('<d', PI).hex() * 2  # Doubled to make 32 bytes
+
+# Euler's Number: e ≈ 2.71828182845904523536
+E = 2.718281828459045235360287471352662497757247093699959574966
+E_HEX = struct.pack('<d', E).hex() * 2  # Doubled to make 32 bytes
+
+# Square Root of 2: √2 ≈ 1.41421356237309504880
+SQRT2 = 1.414213562373095048801688724209698078569671875376948073176
+SQRT2_HEX = struct.pack('<d', SQRT2).hex() * 2  # Doubled to make 32 bytes
+
+
+# Expected SHA-256 checksum for the golden ratio seed
 EXPECTED_CHECKSUM = "096412ca0482ab0f519bc0e4ded667475c45495047653a21aa11e2c7c578fa6f"
 
-# Hex seed for initializing system state (iφ golden seed)
-HEX_SEED = "0000000000000000a8f4979b77e3f93fa8f4979b77e3f93fa8f4979b77e3f93f"
+# Default hex seed (golden ratio - iφ)
+HEX_SEED = GOLDEN_RATIO_HEX
 
 
 def verify_seed_checksum(seed: bytes) -> bool:
@@ -110,7 +135,7 @@ def collect_sifted_bits(state: bytes, counter: int) -> tuple[List[int], bytes, i
     Process:
     1. Concatenate state with counter (as string)
     2. Hash with SHA-256 to get 32 bytes of entropy
-    3. Update state to hash output (forward secrecy)
+    3. Update state to hash output (state progression)
     4. For each byte, check if bits 1 and 2 match
     5. If match: extract bit 0 and add to sifted_bits
     6. Repeat until 256 bits collected
@@ -129,7 +154,7 @@ def collect_sifted_bits(state: bytes, counter: int) -> tuple[List[int], bytes, i
         counter_str = str(counter).encode('utf-8')
         data = state + counter_str
 
-        # Generate entropy and ratchet state for forward secrecy
+        # Generate entropy and progress state
         entropy = hashlib.sha256(data).digest()
         state = entropy
         counter += 1
@@ -149,65 +174,65 @@ def collect_sifted_bits(state: bytes, counter: int) -> tuple[List[int], bytes, i
 
 def xor_fold_hardening(sifted_bits: List[int]) -> bytes:
     """
-    Apply XOR folding to harden 256 bits into a 128-bit key.
+    Apply XOR folding to produce 128-bit output from 256 bits.
 
-    XOR folding provides information-theoretic security by combining
-    the first and second halves of the sifted bits:
-    - For i = 0 to 127: key_bit[i] = sifted_bits[i] XOR sifted_bits[i+128]
+    XOR folding combines the first and second halves of the sifted bits:
+    - For i = 0 to 127: output_bit[i] = sifted_bits[i] XOR sifted_bits[i+128]
 
-    This ensures an attacker needs to compromise both halves to
-    extract information about the original bits.
+    This creates variation in the output stream.
 
     Mathematical formula:
-    key[i] = first_half[i] ⊕ second_half[i] for i = 0 to 127
+    output[i] = first_half[i] ⊕ second_half[i] for i = 0 to 127
     (where ⊕ denotes XOR operation)
 
     Args:
         sifted_bits: List of 256 bits (each element is 0 or 1)
 
     Returns:
-        Hardened key (16 bytes = 128 bits)
+        Output bytes (16 bytes = 128 bits)
     """
     # XOR first half with second half bit by bit
-    key_bits = []
+    output_bits = []
     for i in range(128):
         bit = sifted_bits[i] ^ sifted_bits[i + 128]
-        key_bits.append(bit)
+        output_bits.append(bit)
 
     # Convert bit list to bytes (8 bits per byte, MSB first)
-    key_bytes = bytearray()
+    output_bytes = bytearray()
     for i in range(0, 128, 8):
         byte = 0
         for j in range(8):
-            byte = (byte << 1) | key_bits[i + j]
-        key_bytes.append(byte)
+            byte = (byte << 1) | output_bits[i + j]
+        output_bytes.append(byte)
 
-    return bytes(key_bytes)
+    return bytes(output_bytes)
 
 
 def universal_qkd_generator(seed_hex: str = HEX_SEED) -> Iterator[bytes]:
     """
-    Universal deterministic key generator - infinite stream of 128-bit keys.
+    Universal deterministic stream generator - infinite stream of 128-bit outputs.
 
-    This generator produces an infinite stream of cryptographically strong
-    keys using the golden seed as root of trust. Each key is generated
+    ⚠️ NOT FOR CRYPTOGRAPHY: This generates deterministic pseudo-random streams.
+    
+    This generator produces an infinite stream of deterministic bytes using
+    a mathematical constant seed as starting point. Each output is generated
     through hash-based entropy generation, basis-matching simulation,
-    and XOR folding hardening.
+    and XOR folding.
 
-    Key generation process:
+    Stream generation process:
     1. Initialize state from seed using SHA-256
-    2. For each key:
+    2. For each output:
        a. Generate entropy via repeated SHA-256 hashing
        b. Apply basis matching to simulate sifting (~25-50% efficiency)
        c. Collect 256 sifted bits
-       d. Apply XOR folding to produce 128-bit key
-       e. Update state for forward secrecy
+       d. Apply XOR folding to produce 128-bit output
+       e. Update state for next iteration
 
     Args:
-        seed_hex: Hex string of the seed (default: golden seed iφ)
+        seed_hex: Hex string of the seed (default: golden ratio)
 
     Yields:
-        128-bit keys as bytes (16 bytes each)
+        128-bit outputs as bytes (16 bytes each)
 
     Raises:
         ValueError: If seed checksum verification fails
@@ -229,34 +254,34 @@ def universal_qkd_generator(seed_hex: str = HEX_SEED) -> Iterator[bytes]:
 
     # Infinite stream
     while True:
-        # Layer 3: Entropy Generation with Basis Matching
+        # Layer 3: Stream Generation with Basis Matching
         sifted_bits, state, counter = collect_sifted_bits(state, counter)
 
-        # Layer 4: Key Hardening via XOR Folding
-        key = xor_fold_hardening(sifted_bits)
+        # Layer 4: Output via XOR Folding
+        output = xor_fold_hardening(sifted_bits)
 
-        yield key
+        yield output
 
 
 def generate_keys(num_keys: int, seed_hex: str = HEX_SEED) -> List[str]:
     """
-    Generate a specified number of keys from the Universal QKD Generator.
+    Generate a specified number of outputs from the stream generator.
 
     Args:
-        num_keys: Number of keys to generate
-        seed_hex: Hex string of the seed (default: golden seed iφ)
+        num_keys: Number of outputs to generate
+        seed_hex: Hex string of the seed (default: golden ratio)
 
     Returns:
-        List of hexadecimal key strings
+        List of hexadecimal output strings
     """
     generator = universal_qkd_generator(seed_hex)
-    keys = []
+    outputs = []
 
     for _ in range(num_keys):
-        key = next(generator)
-        keys.append(key.hex())
+        output = next(generator)
+        outputs.append(output.hex())
 
-    return keys
+    return outputs
 
 
 def main():
@@ -264,20 +289,21 @@ def main():
     Main function for CLI interface.
     """
     parser = argparse.ArgumentParser(
-        description="Universal Deterministic Key Generator - Production-grade hash-based key generation",
+        description="Universal Deterministic Stream Generator - Deterministic byte stream generation for procedural content",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
+⚠️  NOT FOR CRYPTOGRAPHY: Use only for procedural generation, testing, and simulations.
+
 Examples:
-  %(prog)s                          # Generate 10 keys (default)
-  %(prog)s -n 100                   # Generate 100 keys
-  %(prog)s -n 50 -o keys.txt        # Save 50 keys to file
-  %(prog)s -n 20 --json             # Output 20 keys in JSON format
-  %(prog)s --json -o keys.json      # Save JSON output to file
-  %(prog)s --quiet -n 5             # Generate 5 keys with minimal output
+  %(prog)s                          # Generate 10 streams (default)
+  %(prog)s -n 100                   # Generate 100 streams
+  %(prog)s -n 50 -o streams.txt     # Save 50 streams to file
+  %(prog)s -n 20 --json             # Output 20 streams in JSON format
+  %(prog)s --json -o streams.json   # Save JSON output to file
+  %(prog)s --quiet -n 5             # Generate 5 streams with minimal output
   %(prog)s --verify-only            # Verify seed integrity only
 
-Protocol: GCP-1 (Golden Consensus Protocol)
-Based on: Hash-based entropy generation with basis matching simulation and XOR folding
+Protocol: Deterministic stream generation with basis matching and XOR folding
         """
     )
 
@@ -286,7 +312,7 @@ Based on: Hash-based entropy generation with basis matching simulation and XOR f
         type=int,
         default=10,
         metavar="N",
-        help="number of keys to generate (default: 10)"
+        help="number of streams to generate (default: 10)"
     )
 
     parser.add_argument(
@@ -305,13 +331,13 @@ Based on: Hash-based entropy generation with basis matching simulation and XOR f
     parser.add_argument(
         "-q", "--quiet",
         action="store_true",
-        help="suppress informational messages, only output keys"
+        help="suppress informational messages, only output streams"
     )
 
     parser.add_argument(
         "--verify-only",
         action="store_true",
-        help="only verify seed checksum without generating keys"
+        help="only verify seed checksum without generating streams"
     )
 
     parser.add_argument(
@@ -327,10 +353,11 @@ Based on: Hash-based entropy generation with basis matching simulation and XOR f
     actual_checksum = hashlib.sha256(seed).hexdigest()
 
     if not args.quiet:
-        print("Universal Deterministic Key Generator (GCP-1)", file=sys.stderr)
+        print("Universal Deterministic Stream Generator", file=sys.stderr)
         print("=" * 60, file=sys.stderr)
         print(file=sys.stderr)
-        print(f"Protocol: Golden Consensus Protocol v1.0", file=sys.stderr)
+        print(f"⚠️  NOT FOR CRYPTOGRAPHY - For procedural generation only", file=sys.stderr)
+        print(file=sys.stderr)
         print(f"Seed: {HEX_SEED}", file=sys.stderr)
         print(f"Expected Checksum: {EXPECTED_CHECKSUM}", file=sys.stderr)
         print(f"Actual Checksum: {actual_checksum}", file=sys.stderr)
@@ -348,15 +375,15 @@ Based on: Hash-based entropy generation with basis matching simulation and XOR f
 
     # Validate num_keys
     if args.num_keys < 1:
-        print("ERROR: Number of keys must be at least 1", file=sys.stderr)
+        print("ERROR: Number of streams must be at least 1", file=sys.stderr)
         sys.exit(1)
 
     if args.num_keys > 1000000:
-        print("WARNING: Generating a large number of keys may take time", file=sys.stderr)
+        print("WARNING: Generating a large number of streams may take time", file=sys.stderr)
 
-    # Generate keys
+    # Generate streams
     if not args.quiet:
-        print(f"Generating {args.num_keys} key{'s' if args.num_keys != 1 else ''}...", file=sys.stderr)
+        print(f"Generating {args.num_keys} stream{'s' if args.num_keys != 1 else ''}...", file=sys.stderr)
         print(file=sys.stderr)
 
     keys = generate_keys(args.num_keys)
@@ -364,12 +391,12 @@ Based on: Hash-based entropy generation with basis matching simulation and XOR f
     # Format output
     if args.json:
         output_data = {
-            "protocol": "GCP-1",
-            "description": "Golden Consensus Protocol v1.0 - Universal QKD Generator",
+            "description": "GoldenSeed - Deterministic Stream Generator",
+            "warning": "NOT FOR CRYPTOGRAPHY",
             "seed": HEX_SEED,
             "checksum": EXPECTED_CHECKSUM,
-            "num_keys": len(keys),
-            "keys": []
+            "num_streams": len(keys),
+            "streams": []
         }
 
         for i, key in enumerate(keys, 1):
