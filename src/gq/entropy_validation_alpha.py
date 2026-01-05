@@ -28,8 +28,9 @@ import sys
 
 # Mathematical constants
 PHI = (1 + math.sqrt(5)) / 2  # Golden ratio
-ALPHA = 1.0 / 137.035999084  # Fine-structure constant (CODATA 2018)
-ALPHA_APPROX = 1.0 / 137  # Approximation as specified
+ALPHA = 1.0 / 137.035999084  # Fine-structure constant (CODATA 2018) - precise value
+ALPHA_APPROX = 1.0 / 137  # Approximation as specified in problem statement
+# Note: ALPHA_APPROX is used throughout the framework as specified in the requirements
 
 # μ = e^(i·3π/4) - The 8th root of unity at 135°
 MU_ANGLE = 3 * math.pi / 4  # 135 degrees in radians
@@ -254,10 +255,14 @@ class EntropyExtractor:
         num_bytes = (num_bits + 7) // 8
         
         # Use SHA-256 to extract deterministic bits
+        # Note: This is for testing/demonstration purposes only.
+        # For production cryptographic applications, use a proper KDF (e.g., HKDF).
         hash_obj = hashlib.sha256(vector_bytes)
         result = hash_obj.digest()
         
-        # If we need more bits, chain the hash
+        # If we need more bits, chain the hash (simple expansion for testing)
+        # WARNING: This hash chaining is NOT cryptographically secure for key derivation.
+        # Use HKDF or similar for production applications requiring secure bit expansion.
         while len(result) < num_bytes:
             hash_obj = hashlib.sha256(result)
             result += hash_obj.digest()
@@ -430,8 +435,10 @@ class StatisticalValidator:
         chi_square = sum((freq.get(i, 0) - expected) ** 2 / expected 
                         for i in range(256))
         
-        # Degrees of freedom = 255
-        # Critical value for α=0.01 and df=255 is approximately 310
+        # Degrees of freedom = 255 (256 possible byte values - 1)
+        # Critical value for significance level α=0.01 and df=255 is approximately 310
+        # Reference: Chi-square distribution table, 99th percentile for df=255
+        # For uniform distribution, we expect χ² ≈ 255; values > 310 indicate non-uniformity
         critical_value = 310
         
         return {

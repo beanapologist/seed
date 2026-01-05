@@ -25,6 +25,9 @@ from src.gq.entropy_validation_alpha import (
     validate_framework
 )
 
+# Test thresholds
+SERIAL_CORRELATION_THRESHOLD = 0.1  # Maximum acceptable correlation for independence
+
 
 class TestQuantizedVector(unittest.TestCase):
     """Test QuantizedVector class."""
@@ -528,8 +531,9 @@ class TestSummaryResults(unittest.TestCase):
         # Frequency test may pass (balanced 0s and 1s)
         self.assertIn('frequency_test', result)
         
-        # Serial correlation should be low
-        self.assertLess(abs(result['serial_correlation_test']['correlation']), 0.1)
+        # Serial correlation should be low (below threshold for independence)
+        self.assertLess(abs(result['serial_correlation_test']['correlation']), 
+                       SERIAL_CORRELATION_THRESHOLD)
         
         # Chi-square test will likely fail (not uniform due to deterministic structure)
         # This is EXPECTED for a deterministic mathematical formula
