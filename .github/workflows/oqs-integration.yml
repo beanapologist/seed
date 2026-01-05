@@ -7,10 +7,16 @@ on:
     branches: [ main, develop ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build-and-test-oqs:
     name: Build and Test liboqs Integration
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
     
     steps:
     - name: Checkout code
@@ -87,6 +93,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-test-oqs
     
+    permissions:
+      contents: read
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -127,6 +136,9 @@ jobs:
   security-checklist:
     name: Quantum-Safe Security Checklist
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
     
     steps:
     - name: Checkout code
