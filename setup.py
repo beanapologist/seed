@@ -35,6 +35,7 @@ setup(
         "console_scripts": [
             "gq-universal=gq.cli.universal:main",
             "gq-test-vectors=gq.cli.gqs1:main",
+            "gq-coin-flip=gq.cli.golden_ratio_coin_flip:main",
         ]
     },
     classifiers=[
