@@ -338,8 +338,8 @@ class TestEntropyValidation(unittest.TestCase):
             metrics = validate_pqc_seed_entropy(pqc_seed)
             
             # All generated seeds should pass quality checks
-            self.assertTrue(metrics['passes_basic_checks'], 
-                          f"Failed for {algorithm.value}")
+            self.assertTrue(metrics['passes_basic_checks'],
+                            f"Failed for {algorithm.value}")
 
 
 class TestAlgorithmInfo(unittest.TestCase):

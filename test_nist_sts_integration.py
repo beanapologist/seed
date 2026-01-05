@@ -135,16 +135,16 @@ class TestNISTSTSIntegration(unittest.TestCase):
                     text=True
                 )
                 
-                self.assertEqual(result.returncode, 0, 
-                               f"Generator {gen} failed: {result.stderr}")
-                self.assertTrue(output_file.exists(), 
-                              f"Output file not created for {gen}")
+                self.assertEqual(result.returncode, 0,
+                                 f"Generator {gen} failed: {result.stderr}")
+                self.assertTrue(output_file.exists(),
+                                f"Output file not created for {gen}")
                 
                 # Verify content
                 with open(output_file, 'r') as f:
                     data = f.read()
-                    self.assertTrue(all(c in '01' for c in data), 
-                                  f"Invalid characters in {gen} output")
+                    self.assertTrue(all(c in '01' for c in data),
+                                    f"Invalid characters in {gen} output")
     
     @classmethod
     def tearDownClass(cls):

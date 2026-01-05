@@ -321,8 +321,8 @@ class TestUniversalQKDEntropy(unittest.TestCase):
         for _ in range(10):
             key = next(generator)
             result = validate_zero_bias(key)
-            self.assertTrue(result['passes'], 
-                          f"Key failed bias test: {result['bias_types']}")
+            self.assertTrue(result['passes'],
+                            f"Key failed bias test: {result['bias_types']}")
 
 
 class TestNISTPQCEntropy(unittest.TestCase):
@@ -401,9 +401,9 @@ class TestNISTPQCEntropy(unittest.TestCase):
             pqc_result = validate_zero_bias(pqc_seed)
             
             self.assertTrue(det_result['passes'],
-                          f"{algorithm.value} det_key failed bias test")
+                            f"{algorithm.value} det_key failed bias test")
             self.assertTrue(pqc_result['passes'],
-                          f"{algorithm.value} pqc_seed failed bias test")
+                            f"{algorithm.value} pqc_seed failed bias test")
 
 
 class TestIntegrationEntropy(unittest.TestCase):
