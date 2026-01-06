@@ -1,23 +1,31 @@
 """
-Golden Quantum (GQ) - Universal Cryptographic Key Generation
+GoldenSeed - Deterministic High-Entropy Byte Streams
 
-This package provides production-grade implementations of:
-- GCP-1: Golden Consensus Protocol v1.0 (Universal QKD Key Generator)
-- GQS-1: Golden Quantum Standard (Test Vector Generation)
+⚠️ NOT FOR CRYPTOGRAPHY: This library generates deterministic pseudo-random
+streams and must NOT be used for cryptographic purposes.
 
-Both protocols use the golden seed (iφ) as a root of trust for deterministic,
-cryptographically strong key generation with forward secrecy.
+This package provides deterministic stream generation for:
+- Procedural content generation (games, simulations)
+- Reproducible test data and fixtures
+- Deterministic noise functions
+- Consensus randomness in distributed systems
+- Space-efficient storage of procedural content
+
+Core Implementations:
+- Universal stream generator with deterministic output
+- Test vector generation for cross-platform validation
+- Golden ratio-based deterministic sequences
 
 Example Usage:
     >>> from gq import UniversalQKD, GQS1
     >>>
-    >>> # Generate keys using GCP-1 (Universal QKD)
+    >>> # Generate deterministic byte streams
     >>> generator = UniversalQKD()
-    >>> key = next(generator)
-    >>> print(key.hex())
+    >>> stream = next(generator)
+    >>> print(stream.hex())
     '3c732e0d04dac163a5cc2b15c7caf42c'
     >>>
-    >>> # Generate test vectors using GQS-1
+    >>> # Generate test vectors
     >>> vectors = GQS1.generate_test_vectors(10)
     >>> print(vectors[0])
     'a01611f01e8207a27c1529c3650c4838'
@@ -28,23 +36,19 @@ from .universal_qkd import (
     generate_keys as generate_universal_keys,
     HEX_SEED,
     EXPECTED_CHECKSUM,
+    GOLDEN_RATIO,
+    PI,
+    E,
+    SQRT2,
+    GOLDEN_RATIO_HEX,
+    PI_HEX,
+    E_HEX,
+    SQRT2_HEX,
 )
 
 from .gqs1 import (
     generate_test_vectors as generate_gqs1_vectors,
     GQS1,
-)
-
-from .nist_pqc import (
-    PQCAlgorithm,
-    PQCSecurityLevel,
-    generate_hybrid_key,
-    generate_hybrid_key_stream,
-    generate_kyber_seed,
-    generate_dilithium_seed,
-    generate_sphincs_seed,
-    validate_pqc_seed_entropy,
-    get_algorithm_info,
 )
 
 from .golden_ratio_coin_flip import (
@@ -65,17 +69,16 @@ __all__ = [
     "generate_gqs1_vectors",
     "HEX_SEED",
     "EXPECTED_CHECKSUM",
-    # NIST PQC
-    "PQCAlgorithm",
-    "PQCSecurityLevel",
-    "generate_hybrid_key",
-    "generate_hybrid_key_stream",
-    "generate_kyber_seed",
-    "generate_dilithium_seed",
-    "generate_sphincs_seed",
-    "validate_pqc_seed_entropy",
-    "get_algorithm_info",
-    # Golden Ratio Coin Flip
+    # Mathematical constants
+    "GOLDEN_RATIO",
+    "PI",
+    "E",
+    "SQRT2",
+    "GOLDEN_RATIO_HEX",
+    "PI_HEX",
+    "E_HEX",
+    "SQRT2_HEX",
+    # Golden Ratio sequences
     "GoldenRatioCoinFlip",
     "EquidistributionValidator",
     "CoinFlipValidator",
@@ -86,7 +89,5 @@ __all__ = [
     "PHI",
 ]
 
-__version__ = "1.0.0"
-__protocol_gcp__ = "GCP-1"
-__protocol_gqs__ = "GQS-1"
+__version__ = "3.0.0"
 __author__ = "beanapologist"

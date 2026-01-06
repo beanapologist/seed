@@ -1,4 +1,4 @@
-name: Golden Quantum Protocol Tests
+name: GoldenSeed Tests
 
 on:
   push:
@@ -37,7 +37,7 @@ jobs:
       run: |
         python -m unittest test_gqs1 -v
 
-    - name: Run Universal QKD unit tests
+    - name: Run Universal stream generator unit tests
       run: |
         python -m unittest test_universal_qkd -v
 
@@ -49,29 +49,33 @@ jobs:
       run: |
         python -m unittest test_binary_verification -v
 
-    - name: Run NIST PQC unit tests
+    - name: Run Edge Cases tests (STL)
       run: |
-        python -m unittest test_nist_pqc -v
+        python -m unittest tests.test_edge_cases -v
 
-    - name: Run NIST PQC vector compliance tests
+    - name: Run Cross-Platform Determinism tests (STL)
       run: |
-        python -m unittest test_nist_pqc_vectors -v
+        python -m unittest tests.test_cross_platform_determinism -v
 
-    - name: Run NIST STS integration tests
+    - name: Run Multi-Seed Collision tests (STL)
       run: |
-        python -m unittest test_nist_sts_integration -v
+        python -m unittest tests.test_multi_seed_collision -v
 
-    - name: Verify GCP-1 first key matches specification
+    - name: Run Quantum Seed Foundations tests
+      run: |
+        python -m unittest tests.test_quantum_seed_foundations -v
+
+    - name: Verify first stream matches specification
       run: |
         FIRST_KEY=$(python -c "from gq import generate_universal_keys; print(generate_universal_keys(1)[0])")
         EXPECTED="3c732e0d04dac163a5cc2b15c7caf42c"
         if [ "$FIRST_KEY" != "$EXPECTED" ]; then
-          echo "ERROR: GCP-1 first key mismatch!"
+          echo "ERROR: First stream mismatch!"
           echo "Expected: $EXPECTED"
           echo "Got: $FIRST_KEY"
           exit 1
         fi
-        echo "✓ GCP-1 first key validated: $FIRST_KEY"
+        echo "✓ First stream validated: $FIRST_KEY"
 
     - name: Verify GQS-1 first vector matches specification
       run: |
@@ -95,15 +99,15 @@ jobs:
         with open('tests/test_vectors.json', 'r') as f:
             reference = json.load(f)
 
-        # Generate keys and compare
-        gcp1_keys = generate_universal_keys(10)
+        # Generate streams and compare
+        universal_keys = generate_universal_keys(10)
         gqs1_keys = generate_gqs1_vectors(10)
 
-        assert gcp1_keys == reference['protocols']['GCP-1']['test_vectors'], 'GCP-1 vectors mismatch'
+        assert universal_keys == reference['protocols']['GCP-1']['test_vectors'], 'Universal stream vectors mismatch'
         assert gqs1_keys == reference['protocols']['GQS-1']['test_vectors'], 'GQS-1 vectors mismatch'
 
         print('✓ All test vectors validated against reference')
-        print(f'  GCP-1: {len(gcp1_keys)} keys verified')
+        print(f'  Universal streams: {len(universal_keys)} verified')
         print(f'  GQS-1: {len(gqs1_keys)} vectors verified')
         "
 
@@ -134,7 +138,7 @@ jobs:
 
     - name: Verify zero dependencies
       run: |
-        pip list --format=freeze | grep -v "^golden-quantum" | grep -v "^pip" | grep -v "^setuptools" | wc -l | grep "^0$" || \
+        pip list --format=freeze | grep -v "^golden-seed" | grep -v "^pip" | grep -v "^setuptools" | wc -l | grep "^0$" || \
         echo "Note: Dev environment may have additional packages"
 
   security:
@@ -204,3 +208,69 @@ jobs:
       run: |
         echo "Test suite completed successfully"
         echo "Note: Coverage reporting requires pytest"
+
+  scalability:
+    name: Scalability and Performance Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: "3.11"
+
+    - name: Install package
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+
+    - name: Run Scalability tests (10K streams)
+      run: |
+        python -m unittest tests.test_scalability_stress.TestLargeScaleKeyGeneration.test_generate_10k_keys -v
+
+    - name: Run Performance benchmarks
+      run: |
+        python -m unittest tests.test_scalability_stress.TestPerformanceBenchmarks -v
+
+    - name: Run Memory efficiency tests
+      run: |
+        python -m unittest tests.test_scalability_stress.TestMemoryEfficiency -v
+
+  extreme-tests:
+    name: Extreme Volume and Velocity Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: "3.11"
+
+    - name: Install package
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+
+    - name: Run Ultra-High Speed tests
+      run: |
+        python -m unittest tests.test_extreme_volume_velocity.TestUltraHighSpeed.test_warm_vs_cold_start_timing -v
+
+    - name: Run Precision and Edge Cases tests
+      run: |
+        python -m unittest tests.test_extreme_volume_velocity.TestPrecisionEdgeCases -v
+
+    - name: Run Memory Resource Limits (subset)
+      run: |
+        python -m unittest tests.test_extreme_volume_velocity.TestMemoryResourceLimits.test_minimal_generator_footprint -v
+
+    - name: Run Counter Boundary tests
+      run: |
+        python -m unittest tests.test_extreme_volume_velocity.TestPrecisionEdgeCases.test_counter_overflow_boundary -v

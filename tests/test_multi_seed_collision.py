@@ -205,8 +205,8 @@ class TestUniquenessGuarantees(unittest.TestCase):
         num_vectors = 10000
         vectors = generate_test_vectors(num_vectors)
         
-        # All vectors should be unique
-        unique_vectors = set(v.hex() for v in vectors)
+        # All vectors should be unique (vectors are already hex strings)
+        unique_vectors = set(vectors)
         self.assertEqual(len(unique_vectors), num_vectors)
         
         print(f"\nGenerated {num_vectors:,} unique GQS-1 test vectors")

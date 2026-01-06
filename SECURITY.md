@@ -1,8 +1,32 @@
 # Security Policy
 
+## Important Notice
+
+⚠️ **This library is NOT cryptographically secure and must NOT be used for cryptographic purposes.**
+
+This project generates **deterministic pseudo-random byte streams** suitable for:
+- Procedural content generation (games, simulations)
+- Reproducible test data and fixtures
+- Deterministic noise functions
+- Consensus randomness in distributed systems
+- Space-efficient storage of procedural content
+
+**This project is NOT suitable for:**
+- Password or passphrase generation
+- Cryptographic key material
+- Encryption or decryption
+- Digital signatures
+- Any security-sensitive applications
+
+For cryptographic needs, use established cryptographically secure random number generators (CSPRNGs) like:
+- Python's `secrets` module
+- `/dev/urandom` on Unix-like systems
+- `CryptGenRandom` on Windows
+- Other certified cryptographic libraries
+
 ## Reporting Security Vulnerabilities
 
-We take security seriously. If you discover a security vulnerability in this project, **please** open a public GitHub issue. Instead, please report it responsibly by:
+If you discover a security vulnerability in this project, please report it responsibly by:
 
 ### Private Disclosure
 - **Email**: Contact the repository maintainer privately with details about the vulnerability
@@ -26,6 +50,7 @@ This security policy covers:
 ## Out of Scope
 
 The following are **not** considered security vulnerabilities:
+- Issues related to using this library for cryptographic purposes (it's explicitly not designed for that)
 - Educational/documentation improvements
 - Code style or formatting issues
 - Feature requests
@@ -77,149 +102,37 @@ def verify_file(filepath, expected_sha256):
 ### For Users
 1. **Verify checksums** before using downloaded binaries
 2. **Use from official releases** only (https://github.com/beanapologist/seed/releases)
-3. **Keep your systems updated** to benefit from security patches
+3. **Keep your systems updated** to benefit from bug fixes and improvements
 4. **Report suspicious behavior** through proper channels
-5. **Use NIST PQC algorithms** when implementing post-quantum secure systems
+5. **Never use for cryptographic purposes** - use established CSPRNGs instead
 
 ### For Contributors
 1. **Don't commit secrets** - use `.gitignore` for sensitive files
 2. **Review code** before submitting pull requests
 3. **Test thoroughly** - especially with different byte orders and platforms
 4. **Document security implications** of changes
-5. **Consider quantum-resistance** in cryptographic implementations
+5. **Ensure disclaimers are clear** about non-cryptographic use
 
-## NIST Post-Quantum Cryptography (PQC) Alignment
+## Data Integrity
 
-This project implements **production-ready hybrid key generation** aligned with NIST-approved Post-Quantum Cryptography standards:
+### Binary File Checksums
 
-### Supported NIST PQC Standards
+All binary files include SHA256/SHA512 checksums for integrity verification.
 
-- **NIST FIPS 203 (ML-KEM/Kyber)**: Key Encapsulation Mechanism
-  - Kyber-512 (Level 1), Kyber-768 (Level 3), Kyber-1024 (Level 5)
-  - Provides IND-CCA2 security under Module-LWE assumption
-  
-- **NIST FIPS 204 (ML-DSA/Dilithium)**: Digital Signature Algorithm
-  - Dilithium2 (Level 2), Dilithium3 (Level 3), Dilithium5 (Level 5)
-  - Provides EUF-CMA security under Module-LWE and Module-SIS assumptions
-  
-- **NIST FIPS 205 (SLH-DSA/SPHINCS+)**: Stateless Hash-Based Signatures
-  - SPHINCS+-128f, SPHINCS+-192f, SPHINCS+-256f
-  - Provides EUF-CMA security with only hash function security assumptions
+See the checksums section above for specific values.
 
-### Hybrid Security Model
+### Testing
 
-The system implements a **defense-in-depth approach**:
-
-1. **Classical Component**: Deterministic keys from GCP-1 protocol (SHA-256 based)
-   - Provides 128-bit quantum security against Grover's algorithm
-   - Enables deterministic reproducibility for consensus systems
-   
-2. **PQC Component**: Quantum-resistant seed material for NIST algorithms
-   - Full protection against Shor's and Grover's quantum attacks
-   - Forward-compatible with post-quantum transition
-   
-3. **Hybrid Security**: System remains secure as long as **either** component is unbroken
-
-### PQC Best Practices
-
-#### For Users
-
-1. **Use Hybrid Approach**: Always combine deterministic keys with PQC seeds
-   ```python
-   from gq import generate_kyber_seed
-   det_key, pqc_seed = generate_kyber_seed(level=768, context=b"KEYGEN")
-   ```
-
-2. **Validate Seed Quality**: Check entropy before using PQC seeds
-   ```python
-   from gq import validate_pqc_seed_entropy
-   metrics = validate_pqc_seed_entropy(pqc_seed)
-   assert metrics['passes_basic_checks'], "Seed quality check failed"
-   ```
-
-3. **Use Context Binding**: Bind keys to specific use cases
-   ```python
-   key_exchange_seed = generate_kyber_seed(level=768, context=b"KEY_EXCHANGE")
-   signature_seed = generate_dilithium_seed(level=3, context=b"SIGNATURE")
-   ```
-
-4. **Choose Appropriate Security Levels**:
-   - Level 1 (Kyber-512, SPHINCS+-128f): Standard security
-   - Level 3 (Kyber-768, Dilithium3): **Recommended** for most applications
-   - Level 5 (Kyber-1024, Dilithium5): High security / long-term protection
-
-5. **Test Against NIST Vectors**: Regularly validate compliance
-   ```bash
-   python -m unittest test_nist_pqc_vectors -v
-   ```
-
-6. **Use Certified Implementations**: Integrate with liboqs, PQClean, or other certified libraries
-
-7. **Implement Key Rotation**: Follow NIST guidelines for key lifecycle management
-
-#### For Contributors
-
-1. **Maintain NIST Compliance**: All PQC-related changes must pass compliance tests
-   ```bash
-   python -m unittest test_nist_pqc -v
-   python -m unittest test_nist_pqc_vectors -v
-   ```
-
-2. **Validate Entropy Quality**: Ensure all PQC seeds meet minimum entropy requirements
-   - Shannon entropy ≥ 4.0 bits/byte for 32-byte seeds
-   - Byte diversity ≥ 10%
-
-3. **Document Security Properties**: Clearly state security assumptions and guarantees
-
-4. **Follow NIST Guidelines**: 
-   - NIST SP 800-208 for hash-based signatures
-   - NIST FIPS 203-205 for algorithm parameters
-   
-5. **Test Determinism**: Verify reproducibility for consensus applications
-
-6. **Check CI/CD**: Ensure NIST PQC compliance workflow passes
-   - `.github/workflows/nist-pqc-compliance.yml`
-
-### Security Testing
-
-The project includes comprehensive security testing:
+The project includes comprehensive testing:
 
 ```bash
-# Run all security tests
+# Run all tests
 python -m unittest discover -p "test_*.py" -v
 
-# Run NIST PQC specific tests
-python -m unittest test_nist_pqc test_nist_pqc_vectors -v
-
-# Check entropy quality
-python -c "
-from gq import generate_hybrid_key, PQCAlgorithm, validate_pqc_seed_entropy
-_, seed = generate_hybrid_key(PQCAlgorithm.KYBER768)
-metrics = validate_pqc_seed_entropy(seed)
-print(f'Entropy: {metrics[\"shannon_entropy\"]:.2f} bits/byte')
-print(f'Quality check: {\"PASS\" if metrics[\"passes_basic_checks\"] else \"FAIL\"}')
-"
+# Run specific test suites
+python -m unittest test_binary_verification -v
+python -m unittest test_compression_capacity -v
 ```
-
-### Known Security Considerations
-
-1. **Quantum Security Timeline**: While PQC algorithms are standardized, quantum computers capable of breaking classical crypto don't yet exist at scale. The hybrid approach provides protection now and in the future.
-
-2. **Implementation Security**: This library provides **seed material** for PQC algorithms. Actual key generation, encryption, and signing must use certified PQC implementations (liboqs, PQClean, etc.).
-
-3. **Side-Channel Attacks**: For hardware security modules (HSMs) and secure enclaves, ensure PQC implementations are resistant to timing and power analysis attacks.
-
-4. **Key Management**: Follow NIST SP 800-57 for key management best practices in hybrid systems.
-
-5. **Algorithm Agility**: Design systems to allow algorithm upgrades as NIST standards evolve.
-
-### Reporting Security Issues
-
-For security vulnerabilities in NIST PQC implementation:
-1. Check if issue affects hybrid key generation or just integration patterns
-2. Include NIST standard reference (FIPS 203, 204, or 205)
-3. Provide test case demonstrating the issue
-4. Suggest fixes aligned with NIST guidelines
 
 ## Release Signing
 
@@ -239,7 +152,7 @@ If you prefer not to store a private key on GitHub, you can generate checksums l
 
 ## No Warranties
 
-This project is provided "as-is" without warranties or guarantees. Users are responsible for validating the appropriateness of this seed for their use cases, especially in security-critical applications.
+This project is provided "as-is" without warranties or guarantees. Users are responsible for validating the appropriateness of this library for their use cases. **This library must NOT be used for cryptographic or security-sensitive applications.**
 
 ## Acknowledgments
 
@@ -247,4 +160,4 @@ We appreciate responsible vulnerability disclosure and security research that he
 
 ---
 
-**Last Updated:** December 30, 2025
+**Last Updated:** January 5, 2026

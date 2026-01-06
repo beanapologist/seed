@@ -114,8 +114,8 @@ python scripts/generate_nist_binary.py -n 1000000 -t universal -o data/test.txt
 # Run NIST STS tests
 python scripts/run_nist_tests.py -i data/test.txt -o results/nist_results.json
 
-# Test all generators
-for gen in universal gqs1 kyber dilithium sphincs; do
+# Test all available generators
+for gen in universal gqs1; do
   python scripts/generate_nist_binary.py -n 1000000 -t $gen -o data/${gen}.txt
   python scripts/run_nist_tests.py -i data/${gen}.txt -o results/${gen}_results.json
 done

@@ -1,16 +1,25 @@
-# Post-Quantum Secure Key Generation - Deterministic Keys with Verified Checksums
+# GoldenSeed — Deterministic High-Entropy Byte Streams
 
 ## Overview
 
-This repository implements a **Post-Quantum Secure Key Generation** system that generates **deterministic keys** aligned with **NIST Post-Quantum Cryptography (PQC) standards** using **verified checksums**. The system provides cryptographically strong keys through hash-based key derivation with bit-shifting operations and XOR folding, designed to integrate with NIST-approved PQC algorithms such as CRYSTALS-Kyber, CRYSTALS-Dilithium, and FrodoKEM.
+> **⚠️ NOT FOR CRYPTOGRAPHY:** This library generates **deterministic** byte streams and **must not** be used for cryptographic purposes such as generating passwords, encryption keys, or any cryptographic key material. For cryptographic applications, use established cryptographically secure random number generators like Python's `secrets` module or `/dev/urandom`.
+
+**GoldenSeed** is a library for generating **infinite, reproducible, high-entropy streams from tiny fixed seeds**. It provides deterministic pseudo-random number generation suitable for:
+
+- 🎮 **Procedural Content Generation** - Games, simulations, and interactive demos
+- 🧪 **Reproducible Test Data** - Consistent test fixtures and fuzzing corpora
+- 🎨 **Deterministic Noise Functions** - Perlin-like functions with exact cross-platform reproducibility
+- 🤝 **Consensus Randomness** - Tie-breaking in distributed systems
+- 💾 **Space-Efficient Storage** - Share large algorithmically generated datasets using tiny seeds
+- 📦 **Compression-Like Storage** - Store procedurally generated content as seeds
 
 **Key Features:**
-- 🔐 **Deterministic Key Generation** - Reproducible keys from golden seed values
-- ✅ **Verified Checksums** - SHA256/SHA512 integrity validation for all operations
-- 🔬 **NIST PQC Alignment** - Compatible with post-quantum cryptographic standards (Kyber, Dilithium, FrodoKEM)
-- 🌐 **Universal Compatibility** - Language-agnostic binary representation
-- 📊 **Forward Secrecy** - Cryptographic ratcheting with state progression
-- 🛡️ **Quantum-Resistant** - Designed for security against quantum computer attacks
+- ♾️ **Infinite Streams** - Generate unlimited bytes from fixed seeds
+- 🔄 **Reproducible** - Same seed always produces identical output
+- 🌐 **Cross-Platform** - Consistent results across languages and architectures
+- 📦 **Tiny Seeds** - Store gigabytes of deterministic data in 16-32 bytes
+- 🚀 **High Performance** - 10,000+ streams/second generation rate
+- 🎯 **Deterministic** - Perfect for procedural generation and testing
 
 ## License
 
@@ -18,241 +27,232 @@ This project is licensed under the GNU General Public License v3.0 or later (GPL
 
 ## Mathematical Foundation
 
-The system uses deterministic mathematical operations for key generation:
+The system uses deterministic mathematical operations for stream generation:
 
 **Core Operations:**
-- **Hash-based State Progression**: SHA-256 is used for forward-secure state updates
+- **Hash-based State Progression**: SHA-256 for deterministic state updates
 - **Bit Shifting**: Left shift by 3 positions (equivalent to multiplication by 8)
-- **XOR Folding**: Combining two halves of data to produce hardened keys
-- **Basis Matching Simulation**: Bit comparison for selective bit extraction (~25-50% efficiency)
+- **XOR Folding**: Combining two halves of data to produce varied output
+- **Basis Matching**: Bit comparison for selective bit extraction (~25-50% efficiency)
 
-**Golden Seed Value:**
-The system uses a golden ratio-based seed value: **iφ = 0 + i × φ** where **φ = (1 + √5)/2 ≈ 1.618033988749895**
+**Mathematical Constant Seeds:**
+The system provides several mathematical constants as starting seeds:
+- **Golden Ratio (φ)**: φ = (1 + √5)/2 ≈ 1.618033988749895
+- **Pi (π)**: π ≈ 3.14159265358979323846
+- **Euler's Number (e)**: e ≈ 2.71828182845904523536
+- **Square Root of 2 (√2)**: √2 ≈ 1.41421356237309504880
 
-This provides a reproducible, language-agnostic starting point for deterministic key generation.
+These provide reproducible, language-agnostic starting points for deterministic generation.
 
 ## Installation
 
 ### As a Python Package
 
-Install the `golden-quantum` package for programmatic access:
+Install the `golden-seed` package for programmatic access:
 
 ```bash
 # Install from source (development mode)
 pip install -e .
 
 # Or install from PyPI (when published)
-pip install golden-quantum
+pip install golden-seed
 ```
 
-## NIST Post-Quantum Cryptography (PQC) Integration
+## Important Usage Note
 
-This system provides **production-ready hybrid key generation** that combines deterministic keys with **NIST-approved Post-Quantum Cryptography** algorithms:
+⚠️ **This library is NOT cryptographically secure and must NOT be used for:**
+- Generating passwords or passphrases
+- Creating encryption keys
+- Generating cryptographic nonces or initialization vectors
+- Any security-sensitive applications
 
-### Supported NIST PQC Algorithms
+✅ **This library IS suitable for:**
+- Procedural content generation in games
+- Generating reproducible test data
+- Creating deterministic noise for simulations
+- Consensus randomness in distributed systems
+- Space-efficient storage of procedural content
 
-#### CRYSTALS-Kyber (ML-KEM) - NIST FIPS 203
-Key Encapsulation Mechanism for secure key exchange:
-- **Kyber-512** (Security Level 1) - 32-byte seed
-- **Kyber-768** (Security Level 3) - 32-byte seed
-- **Kyber-1024** (Security Level 5) - 32-byte seed
+## Use Cases
 
-#### CRYSTALS-Dilithium (ML-DSA) - NIST FIPS 204
-Digital signature algorithm for authentication:
-- **Dilithium2** (Security Level 2) - 32-byte seed
-- **Dilithium3** (Security Level 3) - 32-byte seed
-- **Dilithium5** (Security Level 5) - 32-byte seed
+### Procedural Content Generation
 
-#### SPHINCS+ (SLH-DSA) - NIST FIPS 205
-Stateless hash-based signature scheme:
-- **SPHINCS+-128f** (Security Level 1) - 48-byte seed
-- **SPHINCS+-192f** (Security Level 3) - 64-byte seed
-- **SPHINCS+-256f** (Security Level 5) - 64-byte seed
-
-### Hybrid Key Generation
-
-Generate quantum-resistant hybrid keys combining GCP-1 deterministic keys with NIST PQC seed material:
+Generate infinite, reproducible game content from tiny seeds:
 
 ```python
-from gq import generate_kyber_seed, generate_dilithium_seed, generate_sphincs_seed
+from gq import UniversalQKD
 
-# Generate Kyber-768 hybrid key
-det_key, pqc_seed = generate_kyber_seed(level=768, context=b"KEYGEN")
-# det_key: 16 bytes - Deterministic key from GCP-1
-# pqc_seed: 32 bytes - PQC-compatible seed for Kyber-768
+# Create a world generator with a specific seed
+world_gen = UniversalQKD()
 
-# Generate Dilithium3 hybrid key
-det_key, pqc_seed = generate_dilithium_seed(level=3, context=b"SIGN")
-
-# Generate SPHINCS+-128f hybrid key
-det_key, pqc_seed = generate_sphincs_seed(level=128, context=b"HASH_SIGN")
+# Generate terrain chunks - always the same for the same seed
+for chunk_id in range(10):
+    chunk_bytes = next(world_gen)
+    # Use chunk_bytes to generate terrain, vegetation, etc.
+    terrain_type = chunk_bytes[0] % 5  # 5 terrain types
+    elevation = int.from_bytes(chunk_bytes[1:3], 'big') % 256
+    print(f"Chunk {chunk_id}: terrain={terrain_type}, elevation={elevation}")
 ```
 
-### Advanced Usage
+### Reproducible Testing
+
+Create consistent test fixtures that are reproducible across environments:
 
 ```python
-from gq import (
-    PQCAlgorithm,
-    generate_hybrid_key,
-    generate_hybrid_key_stream,
-    validate_pqc_seed_entropy,
-    get_algorithm_info
-)
+from gq import UniversalQKD
 
-# Generate hybrid key for specific algorithm
-det_key, pqc_seed = generate_hybrid_key(
-    PQCAlgorithm.KYBER768,
-    context=b"SESSION_KEY"
-)
+def generate_test_data(test_id):
+    """Generate reproducible test data for a specific test"""
+    generator = UniversalQKD()
+    
+    # Skip to test-specific position
+    for _ in range(test_id * 100):
+        next(generator)
+    
+    # Generate test data
+    test_bytes = next(generator)
+    return {
+        'user_id': int.from_bytes(test_bytes[0:4], 'big'),
+        'score': int.from_bytes(test_bytes[4:8], 'big') % 1000,
+        'data': test_bytes.hex()
+    }
 
-# Generate multiple hybrid keys
-keys = generate_hybrid_key_stream(
-    PQCAlgorithm.DILITHIUM3,
-    count=10,
-    context=b"BATCH_SIGN"
-)
-
-# Validate entropy quality
-metrics = validate_pqc_seed_entropy(pqc_seed)
-print(f"Shannon entropy: {metrics['shannon_entropy']:.2f} bits/byte")
-print(f"Passes checks: {metrics['passes_basic_checks']}")
-
-# Get algorithm information
-info = get_algorithm_info(PQCAlgorithm.KYBER768)
-print(f"Security level: {info['security_level']}")
-print(f"Seed length: {info['seed_length']} bytes")
+# Same test always gets same data
+test_data = generate_test_data(42)
+print(f"Test 42 data: {test_data}")
 ```
 
-### Security Model
+### Deterministic Consensus
 
-The hybrid approach provides **defense-in-depth**:
-1. **Classical Security**: Deterministic keys from GCP-1 protocol using SHA-256
-2. **Quantum Resistance**: PQC seed material for NIST-approved algorithms
-3. **Forward Compatibility**: Ready for post-quantum transition
+Tie-breaking in distributed systems without coordination:
 
-Security holds as long as **either** component remains secure against attacks.
+```python
+from gq import UniversalQKD
 
-### Integration Points
-The hybrid key generation can serve as:
-1. **Seed Material** for PQC key generation functions
-2. **Entropy Source** for hybrid classical/post-quantum systems
-3. **Deterministic Tie-Breaking** in consensus protocols using PQC signatures
-4. **Key Derivation** foundation for PQC-secured communication channels
+class ConsensusNode:
+    def __init__(self):
+        self.rng = UniversalQKD()
+    
+    def elect_leader(self, round_num, num_nodes):
+        """All nodes elect the same leader deterministically"""
+        # Skip to round-specific position
+        for _ in range(round_num * 10):
+            next(self.rng)
+        
+        leader_bytes = next(self.rng)
+        leader_id = int.from_bytes(leader_bytes[0:4], 'big') % num_nodes
+        return leader_id
 
-For detailed implementation examples, see:
-- `examples/nist_pqc_integration.md` - Integration guide
-- `tests/nist_pqc_test_vectors.json` - NIST test vectors
-- `test_nist_pqc.py` - Comprehensive test suite
+# All nodes will elect the same leader
+node1 = ConsensusNode()
+node2 = ConsensusNode()
+assert node1.elect_leader(5, 10) == node2.elect_leader(5, 10)
+```
 
-## Cryptographic Foundations
+### Space-Efficient Storage
 
-The system is built on standard cryptographic principles:
+Store procedurally generated datasets as tiny seeds:
 
-- **Hash-Based Key Derivation:** Uses SHA-256/SHA-512 for deterministic key generation
-- **Forward Secrecy:** State ratcheting ensures past states cannot be recovered
-- **XOR Folding:** Information-theoretic hardening by combining key material halves
-- **Basis Matching:** Deterministic bit selection simulating probabilistic filtering (~25-50% efficiency)
-- **Checksum Verification:** SHA-256 checksums ensure data integrity
+```python
+from gq import UniversalQKD
 
-For implementation details and validation:
-- `docs/ENTROPY_VALIDATION_TESTS.md` - Entropy validation methodology
-- `tests/test_quantum_seed_foundations.py` - 24 comprehensive validation tests
-- `tests/README.md` - Test suite documentation and usage
+# Instead of storing 1GB of procedural data,
+# store just the seed and regenerate on demand
+SEED_OFFSET = 12345  # This is all you need to store!
+
+def regenerate_large_dataset(offset):
+    """Regenerate gigabytes of data from a tiny seed"""
+    generator = UniversalQKD()
+    
+    # Skip to specific offset
+    for _ in range(offset):
+        next(generator)
+    
+    # Generate large dataset on-demand
+    dataset = []
+    for i in range(1000):  # Generate 1000 entries
+        data = next(generator)
+        dataset.append(data)
+    
+    return dataset
+
+# Regenerate the exact same dataset
+dataset = regenerate_large_dataset(SEED_OFFSET)
+print(f"Regenerated {len(dataset)} entries from seed offset {SEED_OFFSET}")
+```
+
 
 ## Repository Structure
 
 ```
 seed/
-├── qkd/                    # Post-Quantum Secure key generation algorithms (importable package)
-│   ├── algorithms/         # Core PQC-compatible implementations
-│   │   ├── universal_qkd.py       # Universal Key Generator (GCP-1)
-│   │   ├── gqs1.py                # Golden Standard (GQS-1)
-│   │   └── quantum_key_generator.py  # Key Generator Service
-│   └── utils/             # Utility functions
-├── checksum/              # Checksum verification tools (importable package)
-│   └── verify_binary_representation.py
-├── formats/               # Golden seed format examples (importable package)
+├── src/gq/                # Core library (importable package)
+│   ├── universal_qkd.py   # Universal stream generator
+│   ├── gqs1.py            # Test vector generation
+│   └── cli/               # Command-line tools
+├── formats/               # Seed format examples
 │   ├── golden_seed.hex    # Hex representation
 │   ├── golden_seed_16.bin # 16-byte binary
 │   └── golden_seed_32.bin # 32-byte binary
 ├── tests/                 # Comprehensive test suite
-│   ├── test_quantum_seed_foundations.py  # Quantum Seed validation (24 tests)
-│   ├── test_nist_pqc.py                  # NIST PQC integration tests
-│   ├── test_binary_verification.py       # Binary Fusion Tap tests
-│   ├── generate_quantum_test_vectors.py  # Test vector generator
-│   └── README.md                         # Test documentation
-├── test_compression_capacity.py  # Compression capacity testing (9 tests)
-├── docs/                  # Documentation
-│   ├── QUANTUM_SEED_PROOFS.md  # Mathematical proofs and validation
-│   ├── NIST_TESTING.md         # NIST PQC testing guide
-│   ├── ENTROPY_ANALYSIS.md     # Entropy analysis documentation
-│   └── COMPRESSION_TESTING.md  # Compression testing results
+│   ├── test_quantum_seed_foundations.py
+│   └── README.md
 ├── examples/              # Example implementations
-└── releases/              # Multi-language release builds
+└── docs/                  # Documentation
 ```
-
-**Note:** All directories (`qkd`, `checksum`, `formats`) are now importable Python packages with `__init__.py` files.
 
 ### Standalone Scripts
 
-The repository includes standalone CLI scripts that work without installation:
-- `qkd/algorithms/universal_qkd.py` - Universal Key Generator (GCP-1)
-- `qkd/algorithms/gqs1.py` - Golden Standard Test Vectors (GQS-1)
-- `checksum/verify_binary_representation.py` - Binary representation verification with checksum validation
-- `qkd/algorithms/quantum_key_generator.py` - Key Generator Service - SaaS-ready key generation
-- `language_compiler.py` - Multi-language compiler for Binary Fusion Tap (Python, JS, Rust, Go, C, Java, TypeScript)
+The repository includes standalone CLI scripts:
+- `src/gq/universal_qkd.py` - Universal stream generator
+- `src/gq/gqs1.py` - Test vector generation
+- `checksum/verify_binary_representation.py` - Binary verification with checksums
 
 ## Quick Start
 
 ### Python Package API
 
-**Option 1: Using the installed package (recommended):**
+**Using the installed package (recommended):**
 
 ```python
 from gq import UniversalQKD, GQS1
 
-# Generate keys using GCP-1 (Universal Key Generator)
+# Generate deterministic byte streams
 generator = UniversalQKD()
-key = next(generator)
-print(key.hex())  # 3c732e0d04dac163a5cc2b15c7caf42c
+stream = next(generator)
+print(stream.hex())  # 3c732e0d04dac163a5cc2b15c7caf42c
 
-# Generate test vectors using GQS-1
+# Generate test vectors
 vectors = GQS1.generate_test_vectors(10)
 print(vectors[0])  # a01611f01e8207a27c1529c3650c4838
 ```
 
-**Option 2: Importing from repository directories:**
+**Importing from repository directories:**
 
 ```python
 import sys
 sys.path.insert(0, '/path/to/seed')
 
-from qkd.algorithms.universal_qkd import universal_qkd_generator
-from qkd.algorithms.gqs1 import generate_test_vectors
-from checksum.verify_binary_representation import binary_fusion_tap
-from formats import GOLDEN_SEED_16_BIN, GOLDEN_SEED_32_BIN
+from src.gq.universal_qkd import universal_qkd_generator
+from src.gq.gqs1 import generate_test_vectors
 
 # Use the functions
 generator = universal_qkd_generator()
-key = next(generator)
-print(key.hex())
+stream = next(generator)
+print(stream.hex())
 ```
 
 ### Command Line Tools
 
 ```bash
 # After pip install -e .
-gq-universal -n 10          # Generate 10 universal keys
-gq-test-vectors -n 10       # Generate 10 GQS-1 test vectors
-
-# Or use standalone scripts from the repository
-python qkd/algorithms/universal_qkd.py -n 10
-python qkd/algorithms/gqs1.py -n 10
+gq-universal -n 10          # Generate 10 streams
+gq-test-vectors -n 10       # Generate 10 test vectors
 ```
 
 ## Seed Values with Verified Checksums
 
-The golden seed values are stored in the `formats/` directory with multiple representations for cross-platform compatibility.
+The seed values are stored in the `formats/` directory with multiple representations for cross-platform compatibility.
 
 ### 16-byte seed (iφ):
 ```
@@ -260,7 +260,7 @@ The golden seed values are stored in the `formats/` directory with multiple repr
 ```
 **File:** `formats/golden_seed_16.bin`
 
-### 32-byte seed (iφ + 2×φ for consensus):
+### 32-byte seed (iφ + 2×φ):
 ```
 0000000000000000A8F4979B77E3F93FA8F4979B77E3F93FA8F4979B77E3F93F
 ```
@@ -268,14 +268,14 @@ The golden seed values are stored in the `formats/` directory with multiple repr
 
 ### Checksum Verification
 
-All seed values and generated keys include SHA256 checksum verification to ensure data integrity:
+All seed values include SHA256 checksum verification to ensure data integrity:
 
 ```bash
 # Verify binary representation with checksums
 python checksum/verify_binary_representation.py
 ```
 
-## Usage in any language
+## Usage in Any Language
 
 1. **Read binary file as raw bytes**
    - Use `formats/golden_seed_16.bin` for 16-byte seed
@@ -285,9 +285,10 @@ python checksum/verify_binary_representation.py
    - Bytes 0-7: Real part = 0.0
    - Bytes 8-15: Imaginary part = φ ≈ 1.618033988749895
 
-3. **XOR with block hashes for deterministic tie-breaking**
-   - Provides deterministic fork resolution when work scores are equal
-   - All nodes will select the same fork, preventing stalling
+3. **Generate deterministic streams**
+   - Use for procedural content generation
+   - Deterministic tie-breaking in distributed systems
+   - All nodes will generate identical streams
 
 4. **No dependencies, no interpretation layer**
    - Pure binary representation
@@ -296,7 +297,7 @@ python checksum/verify_binary_representation.py
 
 ## Example Code
 
-> **Note:** The examples below are simplified for clarity. Production code should include comprehensive error handling appropriate for your language and use case.
+> **Note:** The examples below are for demonstration. Remember: **NOT FOR CRYPTOGRAPHY**.
 
 ### Python
 
@@ -305,83 +306,62 @@ python checksum/verify_binary_representation.py
 with open('formats/golden_seed_32.bin', 'rb') as f:
     seed = f.read(32)
 
-# XOR with block hash for tie-breaking
-block_hash = b'\x00' * 32  # Your block hash here
-result = bytes(a ^ b for a, b in zip(block_hash, seed))
+# XOR with data for deterministic mixing
+data = b'\x00' * 32  # Your data here
+result = bytes(a ^ b for a, b in zip(data, seed))
 ```
 
-**Universal Key Generator (GCP-1):**
+**Universal Stream Generator:**
 
-This repository includes a production-grade Universal Key Generator implementing the Golden Consensus Protocol v1.0 (`qkd/algorithms/universal_qkd.py`). This protocol provides:
+This repository includes a deterministic stream generator (`src/gq/universal_qkd.py`). This provides:
 
-- Deterministic, synchronized key generation across nodes
-- Cryptographic forward secrecy via state ratcheting
-- Basis-matching simulation (~50% efficiency)
-- XOR folding for key hardening
-- Infinite key stream generation
-- **NIST PQC Compatible**: Keys suitable for use with Kyber, Dilithium, and FrodoKEM
+- Deterministic, synchronized generation across systems
+- State progression via hashing
+- Basis-matching (~50% efficiency)
+- XOR folding for output variation
+- Infinite stream generation
+- **Cross-platform reproducibility**
 
 ```bash
-# Generate 10 keys (default)
-python qkd/algorithms/universal_qkd.py
+# Generate 10 streams (default)
+python src/gq/cli/universal.py
 
-# Generate 100 keys
-python qkd/algorithms/universal_qkd.py -n 100
+# Generate 100 streams
+python src/gq/cli/universal.py -n 100
 
 # Output in JSON format with binary representation
-python qkd/algorithms/universal_qkd.py -n 20 --json --binary
+python src/gq/cli/universal.py -n 20 --json --binary
 
 # Save to file
-python qkd/algorithms/universal_qkd.py -n 50 -o keys.txt
+python src/gq/cli/universal.py -n 50 -o streams.txt
 
-# Quiet mode (keys only, no headers)
-python qkd/algorithms/universal_qkd.py -n 5 --quiet
-
-# Verify seed checksum only
-python qkd/algorithms/universal_qkd.py --verify-only
-
-# Save JSON output to file
-python qkd/algorithms/universal_qkd.py -n 100 --json -o keys.json
+# Quiet mode (streams only, no headers)
+python src/gq/cli/universal.py -n 5 --quiet
 ```
 
-First key (for cross-implementation validation):
+First stream (for cross-implementation validation):
 ```
 3c732e0d04dac163a5cc2b15c7caf42c
 ```
 
-**GQS-1 Test Vector Generation:**
+**Test Vector Generation:**
 
-For test vector generation and compliance testing, use `qkd/algorithms/gqs1.py`:
+For test vector generation and compliance testing:
 
 ```bash
 # Generate 10 test vectors (default)
-python qkd/algorithms/gqs1.py
+python src/gq/cli/gqs1.py
 
 # Generate 100 test vectors
-python qkd/algorithms/gqs1.py -n 100
+python src/gq/cli/gqs1.py -n 100
 
 # Output in JSON format
-python qkd/algorithms/gqs1.py -n 20 --json
-
-# Save to file
-python qkd/algorithms/gqs1.py -n 50 -o vectors.txt
-
-# Quiet mode (vectors only, no headers)
-python qkd/algorithms/gqs1.py -n 5 --quiet
-
-# Verify seed checksum only
-python qkd/algorithms/gqs1.py --verify-only
+python src/gq/cli/gqs1.py -n 20 --json
 ```
 
-For more options, run:
-```bash
-python qkd/algorithms/gqs1.py --help
-python qkd/algorithms/universal_qkd.py --help
-```
+**Binary Representation Verification:**
 
-**Binary Representation Verification with Checksums:**
-
-Verify binary representations of seed values and their computed results with integrated checksum validation:
+Verify binary representations of seed values:
 
 ```bash
 # Run verification for k=11 with seed_11=1234567891011
@@ -393,15 +373,10 @@ This tool demonstrates the relationship between seed values and their computed b
 result = (seed * 8) + k
 ```
 
-Mathematical operations explained:
+Mathematical operations:
 - Bit-shift left by 3: `seed << 3` (equivalent to `seed * 8`)
 - Addition: Add offset parameter `k`
 - XOR extraction: `result XOR (seed * 8)` to isolate the `k` contribution
-
-The tool includes SHA256 checksum validation for integrity verification:
-- Calculates SHA256 checksums for both seed and computed values
-- Verifies data integrity during transmission or storage
-- Can validate against known expected checksums
 
 Example output:
 ```
@@ -413,87 +388,19 @@ Seed SHA256: 7f1665ab9f8c74fd60bd4fdcb10382b63727e10db9d568d385930695cc2f0454
 Result SHA256: 677b205682ad566fcee652f80a4e8a538a265dc849da0d86fc0e5282b4cbf115
 ```
 
-**Key Generator Service:**
-
-Enterprise-grade SaaS-ready key generation service using deterministic binary operations and hash-based cryptography:
-
-```bash
-# Generate single 256-bit key using binary tap algorithm
-python qkd/algorithms/quantum_key_generator.py --algorithm fusion --length 256
-
-# Generate 10 hybrid keys (Binary Tap + Hash + Entropy mixing)
-python qkd/algorithms/quantum_key_generator.py --algorithm hybrid --count 10 --k 11
-
-# Generate 512-bit keys in JSON format for API integration
-python qkd/algorithms/quantum_key_generator.py --algorithm fusion --length 512 --format json
-
-# Generate batch of hash-based keys and save to file
-python qkd/algorithms/quantum_key_generator.py --algorithm hash --count 100 --output keys.json
-```
-
-**Key Generation Algorithms:**
-
-1. **Fusion** - Uses binary tap with bit-shifting and XOR operations
-   - Deterministic for same k parameter (unless salted)
-   - Optimal for protocol verification and testing
-   - Process: Seed generation → Bit-shift (×8) → Add offset → Hash to key length
-
-2. **Hash** - Cryptographic hash-based generation with key stretching
-   - Secure random generation (uses `secrets` module)
-   - 1000-iteration key stretching for enhanced security (similar to PBKDF2)
-   - Deterministic when seed is provided
-
-3. **Hybrid** - Combined approach (Binary Tap + Hash + External Entropy)
-   - Maximum entropy mixing from multiple sources
-   - Best for production key generation
-   - Combines deterministic and random components
-   - Optimal for protocol verification and testing
-   - Includes quantum-inspired entropy extraction
-
-2. **Hash** - Cryptographic hash-based generation with key stretching
-   - Secure random generation (uses `secrets` module)
-   - 1000-iteration key stretching for enhanced security
-   - Deterministic when seed is provided
-
-3. **Hybrid** - Combined approach (Fusion + Hash + External Entropy)
-   - Maximum entropy mixing from multiple sources
-   - Best for production key generation
-   - Combines deterministic and random components
-
-**Supported Key Lengths:** 128, 256, 512 bits
-
-**Applications:**
-- Secure key generation for encryption systems
-- Protocol verification and compliance testing
-- **NIST PQC Integration**: Seed material for Kyber, Dilithium, FrodoKEM
-- Post-quantum cryptography research
-- Deterministic tie-breaking in distributed systems
-- API key generation for SaaS platforms
-
-Example output:
-```
-Key #1:
-  Algorithm: FUSION
-  Key Length: 256 bits
-  Key: 9e4ae62505036d21d8e18c67e3670f8a34576401b5dc269a7ebab421d0dd4b00
-  K Parameter: 11
-  Difference Bits: 0b111011
-  Checksum (SHA256): 1ee118404614d235601a858389ca55f7...
-```
-
 **Multi-Language Compiler:**
 
-Generate binary tap implementations in any programming language:
+Generate implementations in any programming language:
 
 ```bash
 # List all supported languages
 python language_compiler.py --list
 
 # Generate Python implementation
-python language_compiler.py --language python -o my_keygen.py
+python language_compiler.py --language python -o my_generator.py
 
 # Generate Rust implementation
-python language_compiler.py --language rust -o binary_fusion.rs
+python language_compiler.py --language rust -o generator.rs
 
 # Generate ALL languages at once (Python, JS, TS, Rust, Go, C, Java)
 python language_compiler.py --all
@@ -601,29 +508,25 @@ for (int i = 0; i < 32; i++) {
 
 ## Files
 
-See the `formats/` directory for golden seed files:
+See the `formats/` directory for seed files:
 - **formats/golden_seed.hex** - Hex representation
 - **formats/golden_seed_16.bin** - 16-byte binary seed (iφ)
-- **formats/golden_seed_32.bin** - 32-byte binary seed (iφ + 2×φ for consensus)
+- **formats/golden_seed_32.bin** - 32-byte binary seed (iφ + 2×φ)
 
-See the `qkd/` directory for Post-Quantum Secure key generation implementations:
-- **qkd/algorithms/universal_qkd.py** - Universal Key Generator (GCP-1)
-- **qkd/algorithms/gqs1.py** - Golden Standard Test Vectors (GQS-1)
-- **qkd/algorithms/quantum_key_generator.py** - Key Generator Service
+See the `src/gq/` directory for core implementations:
+- **src/gq/universal_qkd.py** - Universal stream generator
+- **src/gq/gqs1.py** - Test vector generation
 
 See the `checksum/` directory for verification tools:
 - **checksum/verify_binary_representation.py** - Binary verification with checksums
 
 See the `tests/` directory for comprehensive test suites:
-- **tests/test_quantum_seed_foundations.py** - Quantum Seed validation (24 tests)
-- **tests/test_nist_pqc.py** - NIST PQC integration tests
+- **tests/test_quantum_seed_foundations.py** - Stream validation (24 tests)
 - **tests/test_binary_verification.py** - Binary Fusion Tap tests
 - **tests/generate_quantum_test_vectors.py** - Generate 10,000+ test vectors
 - **test_compression_capacity.py** - Data compression capacity testing (9 tests)
 
 See the `docs/` directory for detailed documentation:
-- **docs/QUANTUM_SEED_PROOFS.md** - Mathematical proofs and empirical validation
-- **docs/NIST_TESTING.md** - NIST PQC testing guide
 - **docs/ENTROPY_ANALYSIS.md** - Entropy analysis documentation
 - **docs/COMPRESSION_TESTING.md** - Compression capacity testing and results
 
@@ -674,84 +577,84 @@ print(f"Generated {len(compression_dict)} dictionary entries")
 - Scalable: Generate dictionaries of any size
 - Versioned: Use different offsets for different versions
 
-### Use Case 2: Cryptographic Key Validation
+### Use Case 2: Stream Validation and Versioning
 
-Validate key integrity and implement key rotation policies:
+Validate stream integrity and implement versioning:
 
 ```python
 from gq import universal_qkd_generator
 import hashlib
 
-def validate_key_sequence(start_key, num_keys=10):
+def validate_stream_sequence(start_stream, num_streams=10):
     """
-    Validate a sequence of keys matches expected generation.
+    Validate a sequence of streams matches expected generation.
     
-    Useful for verifying key derivation in distributed systems.
+    Useful for verifying stream derivation in distributed systems.
     """
     generator = universal_qkd_generator()
     
     # Find starting position
     for position in range(100000):  # Search limit
         candidate = next(generator)
-        if candidate == start_key:
-            print(f"Found start key at position {position}")
+        if candidate == start_stream:
+            print(f"Found start stream at position {position}")
             
-            # Validate next keys
+            # Validate next streams
             valid_sequence = [candidate]
-            for _ in range(num_keys - 1):
+            for _ in range(num_streams - 1):
                 valid_sequence.append(next(generator))
             
             return True, position, valid_sequence
     
     return False, -1, []
 
-# Example: Validate key sequence
-expected_first_key = bytes.fromhex("3c732e0d04dac163a5cc2b15c7caf42c")
-is_valid, position, sequence = validate_key_sequence(expected_first_key, num_keys=5)
+# Example: Validate stream sequence
+expected_first_stream = bytes.fromhex("3c732e0d04dac163a5cc2b15c7caf42c")
+is_valid, position, sequence = validate_stream_sequence(expected_first_stream, num_streams=5)
 
 if is_valid:
-    print(f"✓ Valid key sequence starting at position {position}")
-    print(f"  Sequence: {[k.hex()[:16] + '...' for k in sequence]}")
+    print(f"✓ Valid stream sequence starting at position {position}")
+    print(f"  Sequence: {[s.hex()[:16] + '...' for s in sequence]}")
 else:
-    print("✗ Invalid key sequence")
+    print("✗ Invalid stream sequence")
 
-def implement_key_rotation(rotation_interval=1000):
+def implement_content_versioning(version_interval=1000):
     """
-    Implement automatic key rotation policy.
+    Implement automatic content versioning.
     
-    Keys are rotated deterministically based on interval.
+    Content is versioned deterministically based on interval.
     """
     generator = universal_qkd_generator()
     
-    current_epoch = 0
-    epoch_keys = {}
+    current_version = 0
+    version_streams = {}
     
-    for key_index in range(rotation_interval * 3):
-        key = next(generator)
-        epoch = key_index // rotation_interval
+    for stream_index in range(version_interval * 3):
+        stream = next(generator)
+        version = stream_index // version_interval
         
-        if epoch != current_epoch:
-            print(f"→ Rotating to epoch {epoch}")
-            current_epoch = epoch
+        if version != current_version:
+            print(f"→ Advancing to version {version}")
+            current_version = version
         
-        if epoch not in epoch_keys:
-            epoch_keys[epoch] = []
-        epoch_keys[epoch].append(key)
+        if version not in version_streams:
+            version_streams[version] = []
+        version_streams[version].append(stream)
     
-    return epoch_keys
+    return version_streams
 
-# Example: 3 epochs with 1000 keys each
-epochs = implement_key_rotation(rotation_interval=1000)
-print(f"\nGenerated {len(epochs)} key epochs")
-for epoch_id, keys in epochs.items():
-    print(f"  Epoch {epoch_id}: {len(keys)} keys")
+# Example: 3 versions with 1000 streams each
+versions = implement_content_versioning(version_interval=1000)
+print(f"\nGenerated {len(versions)} content versions")
+for version_id, streams in versions.items():
+    print(f"  Version {version_id}: {len(streams)} streams")
 ```
 
 **Benefits:**
-- Verifiable: Cryptographically validate key sequences
-- Auditable: Trace key derivation paths
-- Automated: Implement rotation policies without manual intervention
-- Deterministic: Same rotation schedule across all nodes
+- Verifiable: Validate stream sequences
+- Auditable: Trace stream derivation paths
+- Automated: Implement versioning without manual intervention
+- Deterministic: Same versioning schedule across all systems
 
 ### Use Case 3: Infinite Content Generation
 
@@ -869,7 +772,7 @@ for level_num in [1, 10, 100, 1000]:
 - Reproducible: Same seed = same world every time
 - Scalable: Generate content at any scale without performance degradation
 
-### Use Case 4: High-Performance Key Generation
+### Use Case 4: High-Performance Stream Generation
 
 Optimize for maximum throughput in high-performance scenarios:
 
@@ -877,54 +780,54 @@ Optimize for maximum throughput in high-performance scenarios:
 from gq import universal_qkd_generator
 import time
 
-def benchmark_key_generation(num_keys=100000):
-    """Benchmark key generation performance."""
+def benchmark_stream_generation(num_streams=100000):
+    """Benchmark stream generation performance."""
     generator = universal_qkd_generator()
     
     start_time = time.time()
-    keys = [next(generator) for _ in range(num_keys)]
+    streams = [next(generator) for _ in range(num_streams)]
     elapsed = time.time() - start_time
     
-    keys_per_sec = num_keys / elapsed
+    streams_per_sec = num_streams / elapsed
     
     print(f"Performance Benchmark:")
-    print(f"  Generated: {num_keys:,} keys")
+    print(f"  Generated: {num_streams:,} streams")
     print(f"  Time: {elapsed:.2f} seconds")
-    print(f"  Throughput: {keys_per_sec:,.0f} keys/sec")
-    print(f"  Latency: {(elapsed / num_keys) * 1000:.3f} ms/key")
+    print(f"  Throughput: {streams_per_sec:,.0f} streams/sec")
+    print(f"  Latency: {(elapsed / num_streams) * 1000:.3f} ms/stream")
     
-    return keys
+    return streams
 
 # Example: Benchmark performance
-keys = benchmark_key_generation(num_keys=100000)
-print(f"  Memory: {len(keys) * 16 / 1024 / 1024:.2f} MB for {len(keys):,} keys")
+streams = benchmark_stream_generation(num_streams=100000)
+print(f"  Memory: {len(streams) * 16 / 1024 / 1024:.2f} MB for {len(streams):,} streams")
 
-def batch_key_generation(batch_size=1000, num_batches=100):
-    """Generate keys in batches for streaming applications."""
+def batch_stream_generation(batch_size=1000, num_batches=100):
+    """Generate streams in batches for streaming applications."""
     generator = universal_qkd_generator()
     
     for batch_num in range(num_batches):
         batch = [next(generator) for _ in range(batch_size)]
         
-        # Process batch (e.g., encrypt data, sign messages)
+        # Process batch (e.g., generate content, populate database)
         if batch_num % 10 == 0:
-            print(f"  Processed batch {batch_num}: {len(batch)} keys")
+            print(f"  Processed batch {batch_num}: {len(batch)} streams")
         
         # Yield or process batch here
         yield batch
 
 # Example: Batch processing
-print("\nBatch key generation:")
-total_keys = 0
-for batch in batch_key_generation(batch_size=1000, num_batches=10):
-    total_keys += len(batch)
-print(f"Total keys generated: {total_keys:,}")
+print("\nBatch stream generation:")
+total_streams = 0
+for batch in batch_stream_generation(batch_size=1000, num_batches=10):
+    total_streams += len(batch)
+print(f"Total streams generated: {total_streams:,}")
 ```
 
 **Performance Characteristics:**
-- **Throughput**: 10,000+ keys/second (depends on hardware)
-- **Memory**: ~16 bytes per key
-- **Latency**: <0.1 ms per key
+- **Throughput**: 10,000+ streams/second (depends on hardware)
+- **Memory**: ~16 bytes per stream
+- **Latency**: <0.1 ms per stream
 - **Scalability**: Linear scaling with no degradation
 
 ### Use Case 5: Multi-Node Consensus
@@ -936,9 +839,9 @@ from gq import universal_qkd_generator
 
 class ConsensusProtocol:
     """
-    Deterministic consensus using shared key generation.
+    Deterministic consensus using shared stream generation.
     
-    All nodes generate identical keys, enabling leader election,
+    All nodes generate identical streams, enabling leader election,
     tie-breaking, and randomized algorithms without coordination.
     """
     
@@ -957,11 +860,11 @@ class ConsensusProtocol:
         for _ in range(round_number * 10):
             next(self.generator)
         
-        # Generate leader selection key
-        leader_key = next(self.generator)
+        # Generate leader selection stream
+        leader_stream = next(self.generator)
         
-        # Derive leader from key
-        leader_id = int.from_bytes(leader_key[:4], 'big') % self.total_nodes
+        # Derive leader from stream
+        leader_id = int.from_bytes(leader_stream[:4], 'big') % self.total_nodes
         
         return leader_id
     
@@ -971,13 +874,13 @@ class ConsensusProtocol:
         
         All nodes pick the same winner without communication.
         """
-        # Generate tie-breaker key
+        # Generate tie-breaker stream
         for _ in range(decision_id):
             next(self.generator)
         
         tie_breaker = next(self.generator)
         
-        # Select winner based on key
+        # Select winner based on stream
         winner_idx = int.from_bytes(tie_breaker[:4], 'big') % len(candidates)
         
         return candidates[winner_idx]
@@ -1030,7 +933,7 @@ for epoch in range(3):
 **Benefits:**
 - **Coordination-free**: No network communication needed
 - **Byzantine-resistant**: Deterministic, cannot be manipulated
-- **Fair**: Provably random and unbiased
+- **Fair**: Provably unbiased
 - **Efficient**: Instant computation, no consensus overhead
 
 ## Testing
@@ -1045,10 +948,8 @@ pip install -e .
 python -m unittest discover -s . -p "test_*.py" -v
 
 # Run specific test suites
-python -m unittest test_quantum_seed_foundations -v    # Quantum Seed validation
-python -m unittest test_nist_pqc -v                    # NIST PQC tests
+python -m unittest test_quantum_seed_foundations -v    # Stream validation
 python -m unittest test_binary_verification -v         # Binary Fusion Tap tests
-python -m unittest test_standards_compliance -v        # Standards compliance tests
 python -m unittest test_compression_capacity -v        # Compression capacity tests
 
 # Run tests from the tests/ directory
@@ -1086,7 +987,6 @@ python -m unittest test_compression_capacity.TestCompressionCapacity -v
 - **Accuracy**: 100% data reproduction with SHA-256 verification
 
 See **[docs/COMPRESSION_TESTING.md](docs/COMPRESSION_TESTING.md)** for detailed results, graphs, and analysis.
-```
 
 ### Standardized Test Library (STL)
 
@@ -1108,8 +1008,8 @@ python -m unittest tests.test_edge_cases -v
 #### Scalability & Stress Tests (`tests/test_scalability_stress.py`)
 Validates performance and scalability under high load:
 - **20+ tests** covering large-scale generation and performance
-- Tests generation of **10K, 100K, and 1M+ keys**
-- Performance benchmarks: **10,000+ keys/second**
+- Tests generation of **10K, 100K, and 1M+ streams**
+- Performance benchmarks: **10,000+ streams/second**
 - Memory efficiency tests with continuous generation
 - Tests no performance degradation over time
 - Resource utilization under stress
@@ -1123,16 +1023,16 @@ python -m unittest tests.test_scalability_stress.TestPerformanceBenchmarks -v
 ```
 
 **Performance Results:**
-- ✅ 10K keys in <1 second (~11,000 keys/sec)
-- ✅ 100K keys in <10 seconds
-- ✅ 1M keys in <2 minutes
+- ✅ 10K streams in <1 second (~11,000 streams/sec)
+- ✅ 100K streams in <10 seconds
+- ✅ 1M streams in <2 minutes
 - ✅ No memory leaks detected
 - ✅ Consistent performance across batches
 
 #### Multi-Seed Collision Tests (`tests/test_multi_seed_collision.py`)
 Validates collision resistance and uniqueness:
 - **18+ tests** covering collision detection and statistical properties
-- Tests **100,000 unique keys** with no collisions
+- Tests **100,000 unique streams** with no collisions
 - Avalanche effect validation (50% bit difference on seed change)
 - Bit distribution uniformity tests
 - Hamming distance analysis
@@ -1143,20 +1043,20 @@ Validates collision resistance and uniqueness:
 # Run collision tests
 python -m unittest tests.test_multi_seed_collision -v
 
-# Run specific collision test (generates 100K keys)
+# Run specific collision test (generates 100K streams)
 python -m unittest tests.test_multi_seed_collision.TestSeedCollisionResistance.test_no_collisions_within_single_seed_stream -v
 ```
 
 **Collision Resistance Results:**
-- ✅ **100,000 consecutive keys** - no collisions detected
+- ✅ **100,000 consecutive streams** - no collisions detected
 - ✅ Average Hamming distance: ~64 bits (50% of 128 bits)
 - ✅ Uniform bit distribution (40-60% ones per position)
-- ✅ High entropy across key stream (>7.0 bits/byte)
+- ✅ High entropy across stream (>7.0 bits/byte)
 
 #### Cross-Platform Determinism Tests (`tests/test_cross_platform_determinism.py`)
 Validates deterministic behavior across platforms:
 - **21 tests** covering platform independence and reproducibility
-- Tests first key matches specification: `3c732e0d04dac163a5cc2b15c7caf42c`
+- Tests first stream matches specification: `3c732e0d04dac163a5cc2b15c7caf42c`
 - Tests IEEE 754 floating-point consistency
 - Tests hash function determinism
 - Tests byte order independence
@@ -1169,7 +1069,7 @@ python -m unittest tests.test_cross_platform_determinism -v
 ```
 
 **Determinism Results:**
-- ✅ Identical keys across all platforms
+- ✅ Identical streams across all platforms
 - ✅ Works on Linux, Windows, macOS
 - ✅ Consistent across Python 3.8-3.12+
 - ✅ Endianness-independent
@@ -1181,45 +1081,42 @@ python -m unittest tests.test_cross_platform_determinism -v
 
 | Test Suite | Tests | Coverage |
 |------------|-------|----------|
-| Quantum Seed Foundations | 24 | Core mathematical principles |
+| Stream Foundations | 24 | Core mathematical principles |
 | GQS-1 Protocol | 25 | Test vector generation |
-| Universal QKD | 29 | Key generation protocol |
+| Universal Stream Gen | 29 | Stream generation protocol |
 | **STL Edge Cases** | **22** | **Boundary conditions** |
 | **STL Scalability** | **20+** | **Performance & stress** |
 | **STL Collisions** | **18+** | **Uniqueness & entropy** |
 | **STL Cross-Platform** | **21** | **Determinism & portability** |
 | **Compression Capacity** | **9** | **Data compression testing** |
-| Standards Compliance | 25 | NIST & physics standards |
 
 **Expected Results:**
-- ✅ All 24 Quantum Seed foundation tests pass
+- ✅ All 24 stream foundation tests pass
 - ✅ All 81+ STL tests pass
 - ✅ All 9 compression capacity tests pass
 - ✅ 100% deterministic reproducibility
 - ✅ Cross-platform compatibility verified
-- ✅ NIST randomness tests pass
-- ✅ Standards compliance tests pass (25/25)
-- ✅ No collisions in 100,000+ key generation
-- ✅ Performance: 10,000+ keys/second
+- ✅ Statistical randomness tests pass
+- ✅ No collisions in 100,000+ stream generation
+- ✅ Performance: 10,000+ streams/second
 - ✅ Compression ratios: 32x to 327,680x
 
-### Standards Compliance
+## Important Disclaimer
 
-This repository is **fully compliant** with all applicable NIST and physics standards:
+⚠️ **NOT FOR CRYPTOGRAPHIC USE**: This library generates deterministic pseudo-random streams and must **NOT** be used for:
+- Password generation
+- Cryptographic key material
+- Security-sensitive applications
+- Encryption or authentication
 
-- ✅ **NIST SP 800-22 Rev. 1a** - Statistical Test Suite for RNGs
-- ✅ **NIST SP 800-90B** - Entropy Source Validation
-- ✅ **FIPS 203** - ML-KEM (Kyber) Standard
-- ✅ **FIPS 204** - ML-DSA (Dilithium) Standard
-- ✅ **FIPS 205** - SLH-DSA (SPHINCS+) Standard
-- ✅ **IEEE 754-2019** - Floating-Point Arithmetic
-- ✅ **FIPS 180-4** - Secure Hash Standard (SHA-256/SHA-512)
-- ✅ **Quantum Mechanics Principles** - Unit circle geometry, 8th roots of unity
-- ✅ **Information Theory** - Shannon entropy, statistical independence
+For cryptographic purposes, use established CSPRNG libraries like Python's `secrets` module, `/dev/urandom`, or other cryptographically secure random number generators.
 
-**Comprehensive compliance report:** [STANDARDS_COMPLIANCE.md](STANDARDS_COMPLIANCE.md)
-
-**Test coverage:** 25/25 standards compliance tests pass (100%)
+✅ **Appropriate uses include:**
+- Procedural content generation (games, simulations)
+- Reproducible test data and fixtures
+- Deterministic noise functions
+- Consensus randomness in distributed systems
+- Space-efficient storage of procedural content
 
 ## Security
 
@@ -1227,4 +1124,4 @@ See [SECURITY.md](SECURITY.md) for security policy and vulnerability reporting.
 
 ## License
 
-This seed is part of the COINjecture protocol and follows the same license as the main codebase.
+This project is licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later). See the LICENSE file for details.

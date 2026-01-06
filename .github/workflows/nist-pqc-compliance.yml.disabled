@@ -208,10 +208,18 @@ jobs:
     - name: Verify package exports
       run: |
         python -c "
-        # Test that all new exports are available
+        # Test that main exports are available
         from gq import (
             UniversalQKD,
             GQS1,
+            GOLDEN_RATIO,
+            PI,
+            E,
+            SQRT2,
+        )
+        
+        # Test that NIST PQC module can be imported directly
+        from gq.nist_pqc import (
             PQCAlgorithm,
             PQCSecurityLevel,
             generate_hybrid_key,
@@ -222,6 +230,7 @@ jobs:
             validate_pqc_seed_entropy,
             get_algorithm_info,
         )
-        print('✓ All NIST PQC exports available')
+        print('✓ All exports available')
         print('✓ Package API is complete')
+        print('✓ NIST PQC functions accessible via gq.nist_pqc module')
         "
