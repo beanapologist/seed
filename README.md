@@ -1,1 +1,1 @@
-**Commercial Use Notice:** This software can only be used commercially by obtaining a separate paid license. Refer to COMMERCIAL_LICENSE.md for details.
+To use this project under a commercial license, please refer to the COMMERCIAL_LICENSE.md file for details on obtaining the required license.
