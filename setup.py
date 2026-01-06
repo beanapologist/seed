@@ -52,7 +52,7 @@ setup(
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
         "Operating System :: OS Independent",
     ],
-    keywords="procedural-generation deterministic prng reproducible-testing pseudo-random deterministic-streams consensus golden-ratio procedural-content space-efficient-storage game-development simulation testing",
+    keywords="procedural-generation deterministic prng reproducible-testing pseudo-random deterministic-streams consensus golden-ratio procedural-content space-efficient-storage game-development simulation testing data-compression deterministic-algorithms data-teleportation extreme-compression public-good-software seed-generation binary-watermarking data-reconstruction",
     project_urls={
         "Bug Reports": "https://github.com/beanapologist/seed/issues",
         "Source": "https://github.com/beanapologist/seed",
