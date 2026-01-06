@@ -61,7 +61,7 @@ from gq import UniversalQKD
 generator_a = UniversalQKD()
 seed_identifier = 0  # The "seed" is implicit in the algorithm
 
-# Generate 10MB of data (655,360 keys × 16 bytes)
+# Generate 10MB of data (655,360 keys × 16 bytes = 10,485,760 bytes)
 data_a = b''.join([next(generator_a) for _ in range(655360)])
 print(f"Location A generated: {len(data_a)} bytes")
 # Output: Location A generated: 10485760 bytes

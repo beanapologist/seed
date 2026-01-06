@@ -34,6 +34,10 @@ except ImportError:
     sys.exit(1)
 
 
+# Constants
+KEYS_PER_MB_APPROX = 65536  # 65536 keys × 16 bytes/key = 1,048,576 bytes ≈ 1 MB
+
+
 def print_section(title):
     """Print a formatted section header."""
     print("\n" + "=" * 70)
@@ -65,8 +69,8 @@ def demo_data_teleportation():
     
     # Simulate three different locations
     locations = ['New York', 'London', 'Tokyo']
-    data_size_mb = 1  # 1 MB
-    num_keys = data_size_mb * 65536  # 65536 keys = 1 MB
+    data_size_mb = 1  # Approximately 1 MB
+    num_keys = data_size_mb * KEYS_PER_MB_APPROX
     
     print(f"Scenario: Generate {data_size_mb} MB of data at {len(locations)} locations")
     print()
@@ -292,7 +296,7 @@ def demo_privacy_protection():
     
     # Scenario
     data_size_mb = 50
-    num_keys = data_size_mb * 65536
+    num_keys = data_size_mb * KEYS_PER_MB_APPROX
     
     print(f"Scenario: Share {data_size_mb} MB of research data")
     print()
@@ -510,7 +514,6 @@ Examples:
         print()
         print("For more information, see:")
         print("  - docs/DATA_TELEPORTATION_AND_COMPRESSION.md")
-        print("  - test_compression_capacity.py")
         print("  - README.md")
         print()
         

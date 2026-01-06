@@ -300,8 +300,10 @@ class TestUseCaseValidation(unittest.TestCase):
         
         for location_id in range(num_locations):
             generator = UniversalQKD()
-            # Skip to dataset position
-            for _ in range(dataset_id % 1000):  # Modulo to keep test fast
+            # Skip to dataset position (use modulo to keep test execution fast)
+            # In production, full offset would be used without modulo
+            skip_offset = dataset_id % 1000
+            for _ in range(skip_offset):
                 next(generator)
             
             # Generate sample
