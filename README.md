@@ -8,11 +8,14 @@
 
 ⚠️ **NOT FOR CRYPTOGRAPHY**: This library generates deterministic pseudo-random streams and must NOT be used for cryptographic purposes.
 
+🚫 **NOT FOR MILITARY USE**: This software is **strictly prohibited** from use in any military-industrial applications, weapon development, defense contracting, or surveillance systems. See [LICENSE_RESTRICTIONS.md](LICENSE_RESTRICTIONS.md) for details.
+
 ---
 
 ## Table of Contents
 
 - [Overview](#overview)
+- [⚠️ Use Restrictions](#-use-restrictions)
 - [Key Features](#key-features)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
@@ -24,6 +27,45 @@
 - [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
+
+---
+
+## ⚠️ Use Restrictions
+
+### Military-Industrial Complex Prohibition
+
+**This software is designed exclusively for public good applications and ethical civilian purposes.**
+
+🚫 **PROHIBITED USES:**
+
+This software **SHALL NOT** be used for:
+- ❌ **Weapons Development**: Design, development, testing, production, or deployment of military weapons, munitions, or armaments
+- ❌ **Military Hardware**: Development or production of military vehicles, aircraft, ships, missiles, drones, or combat systems
+- ❌ **Surveillance Systems**: Military surveillance, reconnaissance, intelligence gathering, or combat monitoring systems
+- ❌ **Defense Contracting**: Prime contractor or subcontractor work for military procurement contracts
+- ❌ **Autonomous Weapons**: Lethal autonomous weapons systems (LAWS) or autonomous military combat systems
+
+🚫 **PROHIBITED ORGANIZATIONS:**
+
+The following types of organizations are **PROHIBITED** from using this software:
+- Organizations engaged in weapon manufacturing or distribution
+- Defense contractors or military services providers
+- Organizations whose primary business supports military operations
+- Private military companies or combat operations contractors
+- Military intelligence or surveillance operations
+
+✅ **PERMITTED USES:**
+
+The following remain **PERMITTED**:
+- ✅ **Civilian Research**: Academic research, scientific studies, and educational purposes with no military application
+- ✅ **Public Safety**: Civilian emergency services, disaster response, medical services, and public health applications
+- ✅ **Entertainment**: Procedural content generation for games, entertainment, and simulations without military context
+- ✅ **Open Source**: Non-military open-source software development and community projects
+- ✅ **Humanitarian Aid**: NGOs, humanitarian organizations, and aid agencies serving civilian populations
+
+**ENFORCEMENT:** Any violation of these restrictions results in immediate and automatic termination of all rights under the GPL-3.0+ license.
+
+📄 **Complete Details**: See [LICENSE_RESTRICTIONS.md](LICENSE_RESTRICTIONS.md) for the full legal text of these restrictions.
 
 ---
 
@@ -289,18 +331,25 @@ python3 examples/seed_distribution_demo.py --demo all
 
 ### ❌ NOT Suitable For
 
-1. **Cryptography**
+1. **Military-Industrial Applications** ⛔ **PROHIBITED**
+   - ❌ Weapon development or military hardware (PROHIBITED BY LICENSE)
+   - ❌ Defense contracting or military procurement (PROHIBITED BY LICENSE)
+   - ❌ Military surveillance or intelligence systems (PROHIBITED BY LICENSE)
+   - ❌ Combat operations or autonomous weapons (PROHIBITED BY LICENSE)
+   - ❌ Any use by organizations engaged in weapon manufacturing (PROHIBITED BY LICENSE)
+
+2. **Cryptography**
    - ❌ Encryption keys
    - ❌ Authentication tokens
    - ❌ Password generation
    - ❌ Security-sensitive operations
 
-2. **Gambling or Lotteries**
+3. **Gambling or Lotteries**
    - ❌ Casino games (where unpredictability is required)
    - ❌ Lottery number generation
    - ❌ Provably fair gaming (use cryptographic RNG)
 
-3. **Security Applications**
+4. **Security Applications**
    - ❌ Session IDs
    - ❌ CSRF tokens
    - ❌ API keys
@@ -612,20 +661,25 @@ python -m unittest discover -v
 
 ## License
 
-### Open Source: GPL-3.0-or-later
+### Open Source: GPL-3.0-or-later with Additional Restrictions
 
-This project is licensed under the GNU General Public License v3.0 or later.
+This project is licensed under the GNU General Public License v3.0 or later **WITH ADDITIONAL USE RESTRICTIONS** that prohibit military-industrial applications.
 
 **Key Points:**
-- Free for open-source and personal use
-- Modifications must remain open-source
-- Distributed under the same GPL-3.0 terms
+- ✅ Free for open-source and personal use
+- ✅ Free for civilian, educational, and humanitarian purposes
+- ✅ Modifications must remain open-source
+- ✅ Distributed under the same GPL-3.0 terms
+- 🚫 **PROHIBITED** for military-industrial complex use
+- 🚫 **PROHIBITED** for weapon development and defense contracting
 
-See [LICENSE](LICENSE) for full terms.
+**Important Files:**
+- [LICENSE](LICENSE) - GPL-3.0+ with restrictions header
+- [LICENSE_RESTRICTIONS.md](LICENSE_RESTRICTIONS.md) - Complete military-industrial prohibitions
 
 ### Commercial: Separate License Required
 
-For commercial use, obtain a commercial license. See [COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md).
+For commercial use, obtain a commercial license. **Note:** Commercial licenses do NOT grant exemptions from military-industrial prohibitions. See [COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md).
 
 ---
 
@@ -658,7 +712,7 @@ This project uses mathematical concepts from:
 
 ## Disclaimer
 
-⚠️ **IMPORTANT**: This library is NOT suitable for cryptographic purposes. Do not use for:
+⚠️ **IMPORTANT - CRYPTOGRAPHIC USE**: This library is NOT suitable for cryptographic purposes. Do not use for:
 - Encryption or decryption
 - Secure key generation
 - Authentication tokens
@@ -666,6 +720,15 @@ This project uses mathematical concepts from:
 - Security-sensitive applications
 
 For cryptographic random numbers, use Python's `secrets` module or `os.urandom()`.
+
+🚫 **IMPORTANT - MILITARY USE**: This software is **STRICTLY PROHIBITED** for any military-industrial applications including but not limited to:
+- Weapon development, production, or deployment
+- Military hardware or surveillance systems
+- Defense contracting or military procurement
+- Organizations engaged in weapon manufacturing
+- Military intelligence or combat operations
+
+**VIOLATION:** Use in violation of these restrictions results in immediate termination of all license rights. See [LICENSE_RESTRICTIONS.md](LICENSE_RESTRICTIONS.md) for complete details.
 
 ---
 

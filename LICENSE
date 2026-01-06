@@ -1,5 +1,48 @@
+================================================================================
+GOLDENSEED SOFTWARE LICENSE
+================================================================================
+
+This software is licensed under the GNU General Public License v3.0 or later
+(GPL-3.0+) WITH ADDITIONAL USE RESTRICTIONS that prohibit military-industrial
+applications.
+
+Copyright © 2024-2026 beanapologist
+
+================================================================================
+ADDITIONAL USE RESTRICTIONS - MILITARY-INDUSTRIAL PROHIBITION
+================================================================================
+
+This software is designed for public good applications and ethical purposes only.
+
+**PROHIBITED USES:**
+The software SHALL NOT be used for:
+  • Development, production, or deployment of military hardware or weapons
+  • Surveillance systems for military operations
+  • Defense contractor work or military procurement contracts
+  • Organizations engaged in weapon manufacturing
+  • Private military companies or combat operations
+  • Any activities related to the military-industrial complex
+
+**ORGANIZATIONS PROHIBITED FROM USE:**
+  • Weapon manufacturers and defense contractors
+  • Military intelligence and surveillance organizations
+  • Organizations whose primary business supports military operations
+
+For complete details of these restrictions, see LICENSE_RESTRICTIONS.md
+
+**VIOLATION:** Any use in violation of these restrictions results in immediate
+and automatic termination of all rights under the GPL-3.0+ license.
+
+**PERMITTED USES:**
+  • Civilian research, education, and scientific applications
+  • Public safety, emergency services, and humanitarian aid
+  • Entertainment, gaming, and procedural content generation
+  • Open-source software development (non-military)
+
+================================================================================
 GNU GENERAL PUBLIC LICENSE
-                       Version 3, 29 June 2007
+Version 3, 29 June 2007
+================================================================================
 
 Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
 Everyone is permitted to copy and distribute verbatim copies
