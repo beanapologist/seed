@@ -15,6 +15,7 @@ Core Implementations:
 - Universal stream generator with deterministic output
 - Test vector generation for cross-platform validation
 - Golden ratio-based deterministic sequences
+- Commercial licensing watermarking system
 
 Example Usage:
     >>> from gq import UniversalQKD, GQS1
@@ -62,6 +63,16 @@ from .golden_ratio_coin_flip import (
     PHI,
 )
 
+from .watermark import (
+    WatermarkData,
+    WatermarkError,
+    encode_watermark,
+    decode_watermark,
+    embed_watermark_in_binary,
+    extract_watermark_from_binary,
+    check_watermark_present,
+)
+
 __all__ = [
     "UniversalQKD",
     "generate_universal_keys",
@@ -87,6 +98,14 @@ __all__ = [
     "fractional_part",
     "comprehensive_validation",
     "PHI",
+    # Watermarking for commercial licensing
+    "WatermarkData",
+    "WatermarkError",
+    "encode_watermark",
+    "decode_watermark",
+    "embed_watermark_in_binary",
+    "extract_watermark_from_binary",
+    "check_watermark_present",
 ]
 
 __version__ = "3.0.0"
