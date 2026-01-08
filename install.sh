@@ -72,8 +72,12 @@ echo ""
 
 # Verify installation
 echo "Verifying installation..."
-python3 -c "import gq; print(f'GoldenSeed version {gq.__version__} installed successfully')" || {
+python3 -c "import gq; print(f'GoldenSeed version {gq.__version__} installed successfully')" 2>/dev/null || {
     print_error "Installation verification failed"
+    echo "The package was installed but could not be imported. This may indicate:"
+    echo "  - Path issues with Python modules"
+    echo "  - Missing dependencies"
+    echo "  - Installation errors"
     exit 1
 }
 

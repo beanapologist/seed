@@ -21,6 +21,8 @@ const targetFile = path.join(distDir, 'binary_fusion_tap.js');
 if (fs.existsSync(sourceFile)) {
   fs.copyFileSync(sourceFile, targetFile);
   console.log('✓ Copied binary_fusion_tap.js');
+} else {
+  console.log('ℹ binary_fusion_tap.js not found (optional component)');
 }
 
 // Create index.js that exports the main functionality

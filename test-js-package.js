@@ -5,6 +5,17 @@
  * Demonstrates basic usage of the golden-seed npm package
  */
 
+const fs = require('fs');
+const path = require('path');
+
+// Check if dist/index.js exists
+const distPath = path.join(__dirname, 'dist', 'index.js');
+if (!fs.existsSync(distPath)) {
+  console.error('Error: dist/index.js not found!');
+  console.error('Please run: node build-js.js');
+  process.exit(1);
+}
+
 const goldenSeed = require('./dist/index.js');
 
 console.log('='.repeat(60));

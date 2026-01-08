@@ -55,7 +55,8 @@ jobs:
         gq-coin-flip --help
     
     - name: Run unit tests
-      run: python -m unittest discover -v -s . -p "test_*.py" || true
+      run: python -m unittest discover -v -s . -p "test_*.py"
+      continue-on-error: true
     
     - name: Upload artifacts
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
