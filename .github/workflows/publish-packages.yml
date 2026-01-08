@@ -54,7 +54,7 @@ jobs:
       run: twine upload dist/*
     
     - name: Upload release artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: pypi-packages
         path: dist/*
@@ -92,7 +92,7 @@ jobs:
       run: npm pack
     
     - name: Upload release artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: npm-packages
         path: "*.tgz"
