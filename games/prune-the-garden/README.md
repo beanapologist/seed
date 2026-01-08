@@ -78,16 +78,17 @@ This earns you the special **Master Gardener** achievement! 🏆
 
 ## 🧮 Algorithm
 
-The game uses **dynamic programming** with backtracking to find all possible subsets that sum to the target value.
+The game uses **recursive backtracking** to find all possible subsets that sum to the target value.
 
 ### Time Complexity
-- O(n × target) where n is the number of plants
-- Space complexity: O(n × target) for the DP table
+- O(2^n) in the worst case, where n is the number of plants
+- Space complexity: O(n) for the recursion stack
 
 ### How It Works
-1. Build a DP table tracking all possible sums using subsets of plants
-2. Backtrack to find all subsets that achieve the target sum
-3. Handle edge cases (empty garden, no solution, negative values)
+1. Recursively explore all possible subsets by including or excluding each plant
+2. Check if the current subset sums to the target value
+3. Collect all valid solutions
+4. Handle edge cases (empty garden, no solution, negative values)
 
 ## 🎯 Educational Value
 

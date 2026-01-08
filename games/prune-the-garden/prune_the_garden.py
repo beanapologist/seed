@@ -35,12 +35,17 @@ def find_subset_sum(plants, target):
         return [[]] if target == 0 else []
     
     solutions = []
+    has_negative = any(p < 0 for p in plants)
     
     def backtrack(index, current_subset, current_sum):
         """Recursive backtracking to find all solutions."""
         # Found a solution
         if current_sum == target:
             solutions.append(current_subset[:])
+        
+        # Pruning: if all remaining plants are positive and we've exceeded target, stop
+        if not has_negative and current_sum > target:
+            return
         
         # Try all remaining plants
         for i in range(index, len(plants)):
