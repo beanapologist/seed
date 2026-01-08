@@ -23,6 +23,10 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+venv/
+.venv/
+*.whl
+*.tar.gz
 
 # Compiled binaries (C, Rust, Go)
 examples/binary_fusion_tap_c
@@ -38,6 +42,11 @@ Cargo.lock
 
 # Java
 *.class
+
+# JavaScript/Node.js
+node_modules/
+package-lock.json
+*.tgz
 
 # TypeScript
 *.js.map

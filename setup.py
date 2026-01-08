@@ -80,5 +80,4 @@ setup(
         "Source": "https://github.com/beanapologist/seed",
         "Documentation": "https://github.com/beanapologist/seed#readme",
     },
-    license="GPL-3.0-or-later",
 )

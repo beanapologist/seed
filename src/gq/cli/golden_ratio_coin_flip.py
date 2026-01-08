@@ -31,7 +31,7 @@ def format_flips(flips: List[int], format: str = 'binary') -> str:
 def main():
     """Main CLI function."""
     parser = argparse.ArgumentParser(
-        description='Golden Ratio Coin Flip - Generate perfect coin flips using {Z·φ}',
+        description='Golden Ratio Coin Flip - Generate perfect coin flips using {Z*phi}',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -61,7 +61,7 @@ Examples:
     parser.add_argument(
         '--show-fracs',
         action='store_true',
-        help='also show fractional values {Z·φ}'
+        help='also show fractional values {Z*phi}'
     )
 
     parser.add_argument(
@@ -88,7 +88,7 @@ Examples:
     if not args.quiet:
         print("Golden Ratio Coin Flip", file=sys.stderr)
         print("=" * 60, file=sys.stderr)
-        print(f"φ = {PHI:.15f}", file=sys.stderr)
+        print(f"phi = {PHI:.15f}", file=sys.stderr)
         print(file=sys.stderr)
 
     if args.validate:

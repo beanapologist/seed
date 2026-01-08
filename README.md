@@ -3,6 +3,9 @@
 [![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](https://github.com/beanapologist/seed)
 [![License](https://img.shields.io/badge/license-GPL--3.0-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/beanapologist/seed/build-packages.yml?branch=main)](https://github.com/beanapologist/seed/actions)
+[![PyPI](https://img.shields.io/badge/PyPI-ready-brightgreen.svg)](https://pypi.org/project/golden-seed/)
+[![npm](https://img.shields.io/badge/npm-ready-brightgreen.svg)](https://www.npmjs.com/package/@beanapologist/golden-seed)
 
 **Infinite reproducible high-entropy streams from tiny fixed seeds.** For procedural generation, reproducible testing, and deterministic simulations.
 
@@ -139,6 +142,34 @@ watermarked = embed_watermark_in_binary(binary_data, watermark, secret_key)
 
 ## Installation
 
+### Quick Install
+
+**Python (PyPI):**
+```bash
+pip install golden-seed
+```
+
+**JavaScript/Node.js (npm):**
+```bash
+npm install @beanapologist/golden-seed
+```
+
+### Platform-Specific Installation
+
+**Linux / macOS:**
+```bash
+git clone https://github.com/beanapologist/seed.git
+cd seed
+./install.sh
+```
+
+**Windows:**
+```cmd
+git clone https://github.com/beanapologist/seed.git
+cd seed
+install.bat
+```
+
 ### From Source
 
 ```bash
@@ -155,8 +186,11 @@ pip install -e ".[dev]"  # Includes pytest and test dependencies
 
 ### Requirements
 
-- Python 3.8 or higher
-- No external dependencies (core library)
+- **Python**: 3.8 or higher (no external dependencies)
+- **Node.js**: 14.0.0 or higher (for JavaScript package)
+- **Supported Platforms**: Windows, macOS, Linux
+
+📖 **Detailed Guide**: See [INSTALLATION.md](INSTALLATION.md) for comprehensive cross-platform installation instructions.
 
 ---
 

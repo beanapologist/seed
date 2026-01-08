@@ -1,0 +1,96 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "golden-seed"
+version = "3.0.0"
+description = "GoldenSeed — Infinite reproducible high-entropy streams from tiny fixed seeds. For procedural generation, reproducible testing, and deterministic simulations. NOT FOR CRYPTOGRAPHY."
+readme = "README.md"
+authors = [
+    {name = "beanapologist", email = "beanapologist@users.noreply.github.com"}
+]
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Games/Entertainment",
+    "Topic :: Scientific/Engineering",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
+keywords = [
+    "procedural-generation",
+    "deterministic",
+    "prng",
+    "reproducible-testing",
+    "pseudo-random",
+    "deterministic-streams",
+    "consensus",
+    "golden-ratio",
+    "procedural-content",
+    "space-efficient-storage",
+    "game-development",
+    "simulation",
+    "testing",
+    "data-compression",
+    "deterministic-algorithms",
+    "data-teleportation",
+    "extreme-compression",
+    "public-good-software",
+    "seed-generation",
+    "binary-watermarking",
+    "data-reconstruction",
+]
+
+[project.urls]
+Homepage = "https://github.com/beanapologist/seed"
+Documentation = "https://github.com/beanapologist/seed#readme"
+Repository = "https://github.com/beanapologist/seed"
+"Bug Reports" = "https://github.com/beanapologist/seed/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+
+[project.scripts]
+gq-universal = "gq.cli.universal:main"
+gq-test-vectors = "gq.cli.gqs1:main"
+gq-coin-flip = "gq.cli.golden_ratio_coin_flip:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["gq*"]
+namespaces = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "."]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --strict-markers"
+
+[tool.coverage.run]
+source = ["src/gq"]
+omit = ["*/tests/*", "*/test_*.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
