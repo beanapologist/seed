@@ -73,6 +73,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         node-version: ['14', '16', '18', '20']
+        exclude:
+          # Node.js 14 is not available for macOS arm64
+          - os: macos-latest
+            node-version: '14'
     
     steps:
     - name: Checkout code
