@@ -384,6 +384,15 @@
             color: var(--text-secondary);
         }
 
+        .primary-link {
+            color: var(--primary-color);
+        }
+
+        .danger-link {
+            color: var(--danger-color);
+            text-decoration: underline;
+        }
+
         @media (max-width: 768px) {
             .hero h2 {
                 font-size: 1.8em;
@@ -444,7 +453,7 @@
 
             <div class="danger-box">
                 <h3>🚫 NOT FOR MILITARY USE</h3>
-                <p>This software is <strong>strictly prohibited</strong> from use in any military-industrial applications, weapon development, defense contracting, or surveillance systems. See <a href="https://github.com/beanapologist/seed/blob/main/LICENSE_RESTRICTIONS.md" style="color: var(--danger-color); text-decoration: underline;">LICENSE_RESTRICTIONS.md</a> for details.</p>
+                <p>This software is <strong>strictly prohibited</strong> from use in any military-industrial applications, weapon development, defense contracting, or surveillance systems. See <a href="https://github.com/beanapologist/seed/blob/main/LICENSE_RESTRICTIONS.md" class="danger-link">LICENSE_RESTRICTIONS.md</a> for details.</p>
             </div>
 
             <div class="cta-buttons">
@@ -652,15 +661,15 @@ console.log(stream.toString('hex'));</code></pre>
             <div class="features">
                 <div class="feature-card">
                     <h3>📧 Issues</h3>
-                    <p>Report bugs or request features on our <a href="https://github.com/beanapologist/seed/issues" style="color: var(--primary-color);" target="_blank">GitHub Issues</a> page.</p>
+                    <p>Report bugs or request features on our <a href="https://github.com/beanapologist/seed/issues" class="primary-link" target="_blank">GitHub Issues</a> page.</p>
                 </div>
                 <div class="feature-card">
                     <h3>💬 Discussions</h3>
-                    <p>Ask questions and share ideas on <a href="https://github.com/beanapologist/seed/discussions" style="color: var(--primary-color);" target="_blank">GitHub Discussions</a>.</p>
+                    <p>Ask questions and share ideas on <a href="https://github.com/beanapologist/seed/discussions" class="primary-link" target="_blank">GitHub Discussions</a>.</p>
                 </div>
                 <div class="feature-card">
                     <h3>📚 Documentation</h3>
-                    <p>Explore our comprehensive documentation in the <a href="https://github.com/beanapologist/seed/tree/main/docs" style="color: var(--primary-color);" target="_blank">docs folder</a>.</p>
+                    <p>Explore our comprehensive documentation in the <a href="https://github.com/beanapologist/seed/tree/main/docs" class="primary-link" target="_blank">docs folder</a>.</p>
                 </div>
             </div>
         </section>
@@ -707,7 +716,7 @@ console.log(stream.toString('hex'));</code></pre>
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2026 GoldenSeed Project. Licensed under GPL-3.0-or-later with Military Use Prohibition.</p>
-                <p>Made with 🌱 by <a href="https://github.com/beanapologist" style="color: var(--primary-color);">beanapologist</a></p>
+                <p>Made with 🌱 by <a href="https://github.com/beanapologist" class="primary-link">beanapologist</a></p>
             </div>
         </div>
     </footer>
