@@ -25,7 +25,7 @@ from collections import Counter
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from gq import UniversalQKD, GQS1
-from gq.universal_qkd import (
+from qkd.algorithms.universal_qkd import (
     universal_qkd_generator,
     collect_sifted_bits,
 )
@@ -76,7 +76,7 @@ class TestSeedCollisionResistance(unittest.TestCase):
             keys = []
             for i in range(100):
                 sifted, state, counter = collect_sifted_bits(state, counter)
-                from gq.universal_qkd import xor_fold_hardening
+                from qkd.algorithms.universal_qkd import xor_fold_hardening
                 key = xor_fold_hardening(sifted)
                 keys.append(key)
             

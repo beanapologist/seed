@@ -25,7 +25,7 @@ from typing import Iterator
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from gq import UniversalQKD, GQS1
-from gq.universal_qkd import universal_qkd_generator
+from qkd.algorithms.universal_qkd import universal_qkd_generator
 
 
 class TestExtremeVolume(unittest.TestCase):

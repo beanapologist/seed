@@ -24,7 +24,7 @@ from typing import List
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from gq import UniversalQKD, GQS1
-from gq.universal_qkd import (
+from qkd.algorithms.universal_qkd import (
     HEX_SEED,
     EXPECTED_CHECKSUM,
     verify_seed_checksum,
