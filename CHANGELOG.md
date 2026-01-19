@@ -6,6 +6,8 @@ All notable changes to the Post-Quantum Secure Key Generation Multi-Language Com
 
 ### BREAKING CHANGES
 
+> **Note on version numbering**: Version 4.0.0 follows 2.0.0 directly. Version 3.0.0 was skipped to emphasize the severity of the breaking changes in this release and to clearly signal that this is a major departure from previous APIs and naming conventions.
+
 Version 4.0.0 introduces major breaking changes to remove misleading quantum and cryptographic terminology and clarify that this is a deterministic PRNG (Pseudo-Random Number Generator) NOT suitable for cryptographic purposes.
 
 #### Module Renames
