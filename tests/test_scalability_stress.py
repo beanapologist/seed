@@ -245,7 +245,7 @@ class TestPerformanceBenchmarks(unittest.TestCase):
     
     def test_basis_matching_performance(self):
         """Benchmark basis matching simulation performance."""
-        from gq.universal_qkd import basis_match
+        from qkd.algorithms.universal_qkd import basis_match
         
         # Test with all possible byte values
         start_time = time.time()
@@ -434,7 +434,7 @@ class TestComplexityScaling(unittest.TestCase):
     
     def test_sifting_efficiency_over_scale(self):
         """Test that sifting efficiency remains consistent at scale."""
-        from gq.universal_qkd import collect_sifted_bits
+        from qkd.algorithms.universal_qkd import collect_sifted_bits
         
         seed = bytes.fromhex("0000000000000000a8f4979b77e3f93fa8f4979b77e3f93fa8f4979b77e3f93f")
         state = hashlib.sha256(seed).digest()
