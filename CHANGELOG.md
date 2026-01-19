@@ -2,6 +2,73 @@
 
 All notable changes to the Post-Quantum Secure Key Generation Multi-Language Compiler with deterministic keys and verified checksums.
 
+## [4.0.0] - 2026-01-19
+
+### BREAKING CHANGES
+
+> **Note on version numbering**: Version 4.0.0 follows 2.0.0 directly. Version 3.0.0 was skipped to emphasize the severity of the breaking changes in this release and to clearly signal that this is a major departure from previous APIs and naming conventions.
+
+Version 4.0.0 introduces major breaking changes to remove misleading quantum and cryptographic terminology and clarify that this is a deterministic PRNG (Pseudo-Random Number Generator) NOT suitable for cryptographic purposes.
+
+#### Module Renames
+- **`universal_qkd.py` → `stream_generator.py`**: The main module has been renamed to reflect its actual purpose as a stream generator rather than quantum key distribution
+- **`nist_pqc.py` → `pqc_test_vectors.py`**: Clarified that PQC functionality is for test vector generation only
+
+#### API Changes
+- **Class renamed**: `UniversalQKD` → `GoldenStreamGenerator`
+- **Function renamed**: `generate_keys()` → `generate_streams()`
+- **Generator function renamed**: `universal_qkd_generator()` → `golden_stream_generator()`
+- **Terminology update**: All references to "keys" changed to "streams" throughout the codebase
+
+#### Terminology & Documentation
+- Removed misleading "quantum" and "cryptography" claims from all documentation
+- Package explicitly labeled as "PRNG (Pseudo-Random Number Generator)"
+- Enhanced warnings: "NOT FOR CRYPTOGRAPHY" now includes specific examples (passwords, keys, tokens, etc.)
+- Updated all docstrings and module descriptions to accurately describe functionality
+- README updated to emphasize intended use cases (procedural generation, testing, simulations)
+
+#### CLI Changes
+- CLI commands updated to reflect new terminology
+- Output headers now show "GoldenSeed PRNG" instead of quantum-related names
+
+### Backward Compatibility
+
+To ease migration, version 4.0.0 maintains backward compatibility through deprecated aliases:
+- `UniversalQKD` is available as an alias for `GoldenStreamGenerator`
+- `generate_universal_keys()` is available as an alias for `generate_streams()`
+
+**Note**: These deprecated aliases will be removed in a future major version. Users should migrate to the new API names.
+
+### Rationale
+
+The previous naming (QKD, Universal Key Generator) implied cryptographic security and quantum properties that this package does not provide. This version removes all misleading terminology to accurately represent the package as a deterministic PRNG suitable for procedural content generation, reproducible testing, and simulations—but NOT for cryptographic use.
+
+### Migration Guide
+
+Update your imports and function calls:
+
+**Before (v2.x and earlier):**
+```python
+from gq import UniversalQKD, generate_universal_keys
+
+generator = UniversalQKD()
+keys = generate_universal_keys(count=10)
+```
+
+**After (v4.0.0):**
+```python
+from gq import GoldenStreamGenerator, generate_streams
+
+generator = GoldenStreamGenerator()
+streams = generate_streams(count=10)
+```
+
+**Temporary compatibility (v4.0.0 only):**
+```python
+# Old names still work but are deprecated
+from gq import UniversalQKD, generate_universal_keys  # Will be removed in v5.0.0
+```
+
 ## [2.0.0] - 2026-01-04
 
 ### Major Release Highlights

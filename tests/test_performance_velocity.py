@@ -23,8 +23,8 @@ from typing import List, Tuple
 # Add parent directory for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from gq import UniversalQKD, GQS1
-from gq.universal_qkd import universal_qkd_generator
+from gq import GoldenStreamGenerator, GQS1
+from gq.stream_generator import golden_stream_generator
 
 
 class TestThroughputBenchmarks(unittest.TestCase):
@@ -32,7 +32,7 @@ class TestThroughputBenchmarks(unittest.TestCase):
     
     def test_throughput_1kb_blocks(self):
         """Measure throughput for 1KB block generation."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         block_size = 1024  # 1KB
         num_blocks = 1000
         
@@ -49,7 +49,7 @@ class TestThroughputBenchmarks(unittest.TestCase):
     
     def test_throughput_1mb_blocks(self):
         """Measure throughput for 1MB block generation."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         block_size = 1024 * 1024  # 1MB
         num_blocks = 10
         
@@ -66,7 +66,7 @@ class TestThroughputBenchmarks(unittest.TestCase):
     
     def test_sustained_throughput_10mb(self):
         """Test sustained throughput over 10MB generation."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         target_bytes = 10 * 1024 * 1024  # 10MB
         chunk_size = 16  # bytes per stream
         
@@ -89,7 +89,7 @@ class TestLatencyMeasurements(unittest.TestCase):
     
     def test_single_stream_latency(self):
         """Measure latency for single stream generation."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         num_iterations = 10000
         
         latencies = []
@@ -119,7 +119,7 @@ class TestLatencyMeasurements(unittest.TestCase):
     def test_first_stream_cold_start_latency(self):
         """Measure cold start latency."""
         start = time.perf_counter()
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         first_stream = next(generator)
         cold_start_time = time.perf_counter() - start
         
@@ -140,7 +140,7 @@ class TestVolumeScalability(unittest.TestCase):
         
         print("\nVolume Scaling:")
         for num_streams, label in volumes:
-            generator = universal_qkd_generator()
+            generator = golden_stream_generator()
             
             start_time = time.time()
             for _ in range(num_streams):
@@ -154,7 +154,7 @@ class TestVolumeScalability(unittest.TestCase):
     
     def test_consistent_performance_over_volume(self):
         """Verify performance doesn't degrade with volume."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Measure performance in batches
         batch_sizes = [10000, 10000, 10000]
@@ -196,7 +196,7 @@ class TestComparativePerformance(unittest.TestCase):
         python_rate = num_iterations / python_time
         
         # Test GoldenSeed
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         start = time.time()
         for _ in range(num_iterations):
             next(generator)
@@ -226,7 +226,7 @@ class TestComparativePerformance(unittest.TestCase):
         sha256_rate = num_iterations / sha256_time
         
         # Test GoldenSeed (which uses SHA256 internally)
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         start = time.time()
         for _ in range(num_iterations):
             next(generator)
@@ -246,7 +246,7 @@ class TestComparativePerformance(unittest.TestCase):
         num_iterations = 10000
         
         # Test Universal
-        gen_universal = universal_qkd_generator()
+        gen_universal = golden_stream_generator()
         start = time.time()
         for _ in range(num_iterations):
             next(gen_universal)
@@ -277,7 +277,7 @@ class TestMemoryEfficiency(unittest.TestCase):
         """Verify minimal memory overhead per stream."""
         import sys
         
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Generate and discard streams
         for _ in range(10000):
@@ -292,7 +292,7 @@ class TestMemoryEfficiency(unittest.TestCase):
         """Verify no memory leaks during generation."""
         import gc
         
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Force garbage collection and measure
         gc.collect()
@@ -316,7 +316,7 @@ class TestParallelPerformance(unittest.TestCase):
         num_generators = 10
         iterations_per_gen = 1000
         
-        generators = [universal_qkd_generator() for _ in range(num_generators)]
+        generators = [golden_stream_generator() for _ in range(num_generators)]
         
         start = time.time()
         for gen in generators:
@@ -344,7 +344,7 @@ class TestReproducibilityPerformance(unittest.TestCase):
         # Generate twice with same seed
         times = []
         for run in range(2):
-            generator = universal_qkd_generator()
+            generator = golden_stream_generator()
             start = time.time()
             for _ in range(num_iterations):
                 next(generator)

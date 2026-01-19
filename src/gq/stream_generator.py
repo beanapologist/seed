@@ -1,12 +1,12 @@
 """
-Universal Deterministic Stream Generator
+Deterministic PRNG (Pseudo-Random Number Generator)
 
-A production-grade deterministic byte stream generation system that produces
-synchronized output across systems. This implementation uses mathematical
-constant seeds with language-agnostic, endian-independent design.
+A production-grade deterministic PRNG that produces synchronized pseudo-random
+output across systems. This implementation uses mathematical constant seeds
+with language-agnostic, endian-independent design.
 
-⚠️ NOT FOR CRYPTOGRAPHY: This generates deterministic pseudo-random streams
-and must NOT be used for cryptographic purposes (passwords, keys, etc.).
+⚠️ NOT FOR CRYPTOGRAPHY: This is a PRNG that generates deterministic pseudo-random
+streams and must NOT be used for cryptographic purposes (passwords, keys, tokens, etc.).
 
 Suitable for: procedural generation, reproducible testing, deterministic
 simulations, consensus randomness, and space-efficient storage.
@@ -14,35 +14,35 @@ simulations, consensus randomness, and space-efficient storage.
 Protocol Specification:
 
 Layer 1: Root Seed
-  - Seed Hex: 0000000000000000a8f4979b77e3f93fa8f4979b77e3f93fa8f4979b77e3f93f
+  - Seed Hex: 0000000000000000a8f4979b77e3f93fa8f4979b77e3f93f
   - Verify SHA-256: 096412ca0482ab0f519bc0e4ded667475c45495047653a21aa11e2c7c578fa6f
 
 Layer 2: State Initialization
   - State = SHA256(Seed)
   - Counter = 0
 
-Layer 3: Stream Generation with Basis Matching Simulation
-  - Loop until 256 sifted bits collected:
+Layer 3: Stream Generation with Bit Selection
+  - Loop until 256 selected bits collected:
     * Entropy = SHA256(State || Counter_string)
       (where || denotes concatenation)
     * State = Entropy (ratchet for forward progression)
     * Counter += 1
     * For each byte in Entropy:
       - Check if bits match using: ((byte >> 1) & 1) == ((byte >> 2) & 1)
-      - This simulates basis matching with ~25-50% efficiency
-      - If bits match: Append (byte & 1) to sifted_bits
+      - This provides ~25-50% selection efficiency
+      - If bits match: Append (byte & 1) to selected_bits
 
 Layer 4: Output via XOR Folding
-  - Split 256 sifted bits into two 128-bit halves
+  - Split 256 selected bits into two 128-bit halves
   - For i = 0 to 127:
-    Output_bit[i] = sifted_bits[i] XOR sifted_bits[i + 128]
+    Output_bit[i] = selected_bits[i] XOR selected_bits[i + 128]
   - Output 128-bit stream (16 bytes)
   - Stream continues indefinitely for subsequent outputs
 
 This implementation provides:
   - Determinism for cross-implementation verification
   - State progression via ratcheting
-  - Basis-matching simulation (~25-50% efficiency)
+  - Bit selection for filtering (~25-50% efficiency)
   - XOR folding for output variation
 """
 
@@ -63,24 +63,24 @@ def _double_pack_hex(value: float) -> str:
 
 # Mathematical constants as seeds (IEEE 754 double precision, little-endian)
 # These can be used as alternative seeds for different applications by passing
-# to universal_qkd_generator(seed_hex=CONSTANT_HEX)
+# to golden_stream_generator(seed_hex=CONSTANT_HEX)
 
 # Golden Ratio: φ = (1 + √5)/2 ≈ 1.618033988749895
 GOLDEN_RATIO = 1.618033988749894848204586834365638117720309179805762862135
 GOLDEN_RATIO_HEX = "0000000000000000a8f4979b77e3f93fa8f4979b77e3f93fa8f4979b77e3f93f"
 
 # Pi: π ≈ 3.14159265358979323846
-# Usage: universal_qkd_generator(seed_hex=PI_HEX)
+# Usage: golden_stream_generator(seed_hex=PI_HEX)
 PI = 3.141592653589793238462643383279502884197169399375105820974
 PI_HEX = _double_pack_hex(PI)
 
 # Euler's Number: e ≈ 2.71828182845904523536
-# Usage: universal_qkd_generator(seed_hex=E_HEX)
+# Usage: golden_stream_generator(seed_hex=E_HEX)
 E = 2.718281828459045235360287471352662497757247093699959574966
 E_HEX = _double_pack_hex(E)
 
 # Square Root of 2: √2 ≈ 1.41421356237309504880
-# Usage: universal_qkd_generator(seed_hex=SQRT2_HEX)
+# Usage: golden_stream_generator(seed_hex=SQRT2_HEX)
 SQRT2 = 1.414213562373095048801688724209698078569671875376948073176
 SQRT2_HEX = _double_pack_hex(SQRT2)
 
@@ -88,7 +88,7 @@ SQRT2_HEX = _double_pack_hex(SQRT2)
 # Expected SHA-256 checksum for the golden ratio seed
 EXPECTED_CHECKSUM = "096412ca0482ab0f519bc0e4ded667475c45495047653a21aa11e2c7c578fa6f"
 
-# Default hex seed (golden ratio - iφ)
+# Default hex seed (golden ratio - φ)
 HEX_SEED = GOLDEN_RATIO_HEX
 
 
@@ -106,17 +106,16 @@ def verify_seed_checksum(seed: bytes) -> bool:
     return checksum == EXPECTED_CHECKSUM
 
 
-def basis_match(byte: int) -> bool:
+def bit_selection_check(byte: int) -> bool:
     """
-    Check if two specific bits match for sifting simulation.
+    Check if two specific bits match for bit selection.
 
-    This function simulates a basis matching check by comparing bit 1 and bit 2
+    This function performs a bit selection check by comparing bit 1 and bit 2
     of a byte. When these bits are equal, we consider it a "match" and retain
-    bit 0 for the sifted output.
+    bit 0 for the selected output.
 
     The condition ((byte >> 1) & 1) == ((byte >> 2) & 1) provides ~25-50%
-    efficiency, which simulates the probabilistic nature of basis matching
-    in quantum systems.
+    selection efficiency, creating natural filtering in the stream generation.
 
     Mathematical explanation:
     - (byte >> 1) & 1 extracts bit at position 1
@@ -134,12 +133,12 @@ def basis_match(byte: int) -> bool:
     return bit1 == bit2
 
 
-def collect_sifted_bits(state: bytes, counter: int) -> tuple[List[int], bytes, int]:
+def collect_selected_bits(state: bytes, counter: int) -> tuple[List[int], bytes, int]:
     """
-    Collect 256 bits using basis-matching simulation.
+    Collect 256 bits using bit selection filtering.
 
     This function repeatedly hashes the state to generate entropy, then
-    applies a basis-matching check to each byte. When the check passes,
+    applies a bit selection check to each byte. When the check passes,
     we extract one bit for the output.
 
     Process:
@@ -147,7 +146,7 @@ def collect_sifted_bits(state: bytes, counter: int) -> tuple[List[int], bytes, i
     2. Hash with SHA-256 to get 32 bytes of entropy
     3. Update state to hash output (state progression)
     4. For each byte, check if bits 1 and 2 match
-    5. If match: extract bit 0 and add to sifted_bits
+    5. If match: extract bit 0 and add to selected_bits
     6. Repeat until 256 bits collected
 
     Args:
@@ -155,11 +154,11 @@ def collect_sifted_bits(state: bytes, counter: int) -> tuple[List[int], bytes, i
         counter: Current counter value
 
     Returns:
-        Tuple of (sifted_bits, final_state, final_counter)
+        Tuple of (selected_bits, final_state, final_counter)
     """
-    sifted_bits = []
+    selected_bits = []
 
-    while len(sifted_bits) < 256:
+    while len(selected_bits) < 256:
         # Concatenate state with counter as UTF-8 string
         counter_str = str(counter).encode('utf-8')
         data = state + counter_str
@@ -169,25 +168,25 @@ def collect_sifted_bits(state: bytes, counter: int) -> tuple[List[int], bytes, i
         state = entropy
         counter += 1
 
-        # Apply basis matching check for each byte
+        # Apply bit selection check for each byte
         for byte in entropy:
-            if basis_match(byte):
-                # Extract bit 0 as the sifted bit
-                sifted_bits.append(byte & 1)
+            if bit_selection_check(byte):
+                # Extract bit 0 as the selected bit
+                selected_bits.append(byte & 1)
 
                 # Stop if we have enough bits
-                if len(sifted_bits) >= 256:
+                if len(selected_bits) >= 256:
                     break
 
-    return sifted_bits[:256], state, counter
+    return selected_bits[:256], state, counter
 
 
-def xor_fold_hardening(sifted_bits: List[int]) -> bytes:
+def xor_fold_output(selected_bits: List[int]) -> bytes:
     """
     Apply XOR folding to produce 128-bit output from 256 bits.
 
-    XOR folding combines the first and second halves of the sifted bits:
-    - For i = 0 to 127: output_bit[i] = sifted_bits[i] XOR sifted_bits[i+128]
+    XOR folding combines the first and second halves of the selected bits:
+    - For i = 0 to 127: output_bit[i] = selected_bits[i] XOR selected_bits[i+128]
 
     This creates variation in the output stream.
 
@@ -196,7 +195,7 @@ def xor_fold_hardening(sifted_bits: List[int]) -> bytes:
     (where ⊕ denotes XOR operation)
 
     Args:
-        sifted_bits: List of 256 bits (each element is 0 or 1)
+        selected_bits: List of 256 bits (each element is 0 or 1)
 
     Returns:
         Output bytes (16 bytes = 128 bits)
@@ -204,7 +203,7 @@ def xor_fold_hardening(sifted_bits: List[int]) -> bytes:
     # XOR first half with second half bit by bit
     output_bits = []
     for i in range(128):
-        bit = sifted_bits[i] ^ sifted_bits[i + 128]
+        bit = selected_bits[i] ^ selected_bits[i + 128]
         output_bits.append(bit)
 
     # Convert bit list to bytes (8 bits per byte, MSB first)
@@ -218,23 +217,22 @@ def xor_fold_hardening(sifted_bits: List[int]) -> bytes:
     return bytes(output_bytes)
 
 
-def universal_qkd_generator(seed_hex: str = HEX_SEED) -> Iterator[bytes]:
+def golden_stream_generator(seed_hex: str = HEX_SEED) -> Iterator[bytes]:
     """
-    Universal deterministic stream generator - infinite stream of 128-bit outputs.
+    Deterministic PRNG - infinite stream of 128-bit pseudo-random outputs.
 
-    ⚠️ NOT FOR CRYPTOGRAPHY: This generates deterministic pseudo-random streams.
-    
-    This generator produces an infinite stream of deterministic bytes using
-    a mathematical constant seed as starting point. Each output is generated
-    through hash-based entropy generation, basis-matching simulation,
-    and XOR folding.
+    ⚠️ NOT FOR CRYPTOGRAPHY: This is a PRNG for procedural generation only.
+
+    This PRNG produces an infinite stream of deterministic pseudo-random bytes
+    using a mathematical constant seed as starting point. Each output is generated
+    through hash-based entropy generation, bit selection filtering, and XOR folding.
 
     Stream generation process:
     1. Initialize state from seed using SHA-256
     2. For each output:
        a. Generate entropy via repeated SHA-256 hashing
-       b. Apply basis matching to simulate sifting (~25-50% efficiency)
-       c. Collect 256 sifted bits
+       b. Apply bit selection to filter bits (~25-50% efficiency)
+       c. Collect 256 selected bits
        d. Apply XOR folding to produce 128-bit output
        e. Update state for next iteration
 
@@ -264,30 +262,30 @@ def universal_qkd_generator(seed_hex: str = HEX_SEED) -> Iterator[bytes]:
 
     # Infinite stream
     while True:
-        # Layer 3: Stream Generation with Basis Matching
-        sifted_bits, state, counter = collect_sifted_bits(state, counter)
+        # Layer 3: Stream Generation with Bit Selection
+        selected_bits, state, counter = collect_selected_bits(state, counter)
 
         # Layer 4: Output via XOR Folding
-        output = xor_fold_hardening(sifted_bits)
+        output = xor_fold_output(selected_bits)
 
         yield output
 
 
-def generate_keys(num_keys: int, seed_hex: str = HEX_SEED) -> List[str]:
+def generate_streams(num_streams: int, seed_hex: str = HEX_SEED) -> List[str]:
     """
     Generate a specified number of outputs from the stream generator.
 
     Args:
-        num_keys: Number of outputs to generate
+        num_streams: Number of outputs to generate
         seed_hex: Hex string of the seed (default: golden ratio)
 
     Returns:
         List of hexadecimal output strings
     """
-    generator = universal_qkd_generator(seed_hex)
+    generator = golden_stream_generator(seed_hex)
     outputs = []
 
-    for _ in range(num_keys):
+    for _ in range(num_streams):
         output = next(generator)
         outputs.append(output.hex())
 
@@ -299,10 +297,10 @@ def main():
     Main function for CLI interface.
     """
     parser = argparse.ArgumentParser(
-        description="Universal Deterministic Stream Generator - Deterministic byte stream generation for procedural content",
+        description="GoldenSeed PRNG - Deterministic pseudo-random number generator for procedural content",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-⚠️  NOT FOR CRYPTOGRAPHY: Use only for procedural generation, testing, and simulations.
+⚠️  NOT FOR CRYPTOGRAPHY: This is a PRNG for procedural generation, testing, and simulations only.
 
 Examples:
   %(prog)s                          # Generate 10 streams (default)
@@ -313,12 +311,12 @@ Examples:
   %(prog)s --quiet -n 5             # Generate 5 streams with minimal output
   %(prog)s --verify-only            # Verify seed integrity only
 
-Protocol: Deterministic stream generation with basis matching and XOR folding
+Protocol: Deterministic stream generation with bit selection and XOR folding
         """
     )
 
     parser.add_argument(
-        "-n", "--num-keys",
+        "-n", "--num-streams",
         type=int,
         default=10,
         metavar="N",
@@ -363,10 +361,10 @@ Protocol: Deterministic stream generation with basis matching and XOR folding
     actual_checksum = hashlib.sha256(seed).hexdigest()
 
     if not args.quiet:
-        print("Universal Deterministic Stream Generator", file=sys.stderr)
+        print("GoldenSeed PRNG (Pseudo-Random Number Generator)", file=sys.stderr)
         print("=" * 60, file=sys.stderr)
         print(file=sys.stderr)
-        print(f"⚠️  NOT FOR CRYPTOGRAPHY - For procedural generation only", file=sys.stderr)
+        print(f"⚠️  NOT FOR CRYPTOGRAPHY - PRNG for procedural generation only", file=sys.stderr)
         print(file=sys.stderr)
         print(f"Seed: {HEX_SEED}", file=sys.stderr)
         print(f"Expected Checksum: {EXPECTED_CHECKSUM}", file=sys.stderr)
@@ -383,40 +381,40 @@ Protocol: Deterministic stream generation with basis matching and XOR folding
             print("✓ Seed checksum verified successfully", file=sys.stderr)
         sys.exit(0)
 
-    # Validate num_keys
-    if args.num_keys < 1:
+    # Validate num_streams
+    if args.num_streams < 1:
         print("ERROR: Number of streams must be at least 1", file=sys.stderr)
         sys.exit(1)
 
-    if args.num_keys > 1000000:
+    if args.num_streams > 1000000:
         print("WARNING: Generating a large number of streams may take time", file=sys.stderr)
 
     # Generate streams
     if not args.quiet:
-        print(f"Generating {args.num_keys} stream{'s' if args.num_keys != 1 else ''}...", file=sys.stderr)
+        print(f"Generating {args.num_streams} stream{'s' if args.num_streams != 1 else ''}...", file=sys.stderr)
         print(file=sys.stderr)
 
-    keys = generate_keys(args.num_keys)
+    streams = generate_streams(args.num_streams)
 
     # Format output
     if args.json:
         output_data = {
-            "description": "GoldenSeed - Deterministic Stream Generator",
-            "warning": "NOT FOR CRYPTOGRAPHY",
+            "description": "GoldenSeed PRNG - Deterministic Pseudo-Random Number Generator",
+            "warning": "NOT FOR CRYPTOGRAPHY - PRNG for procedural generation only",
             "seed": HEX_SEED,
             "checksum": EXPECTED_CHECKSUM,
-            "num_streams": len(keys),
+            "num_streams": len(streams),
             "streams": []
         }
 
-        for i, key in enumerate(keys, 1):
+        for i, stream in enumerate(streams, 1):
             stream_entry = {
                 "index": i,
-                "hex": key
+                "hex": stream
             }
             if args.binary:
-                key_bytes = bytes.fromhex(key)
-                binary_str = ''.join(format(byte, '08b') for byte in key_bytes)
+                stream_bytes = bytes.fromhex(stream)
+                binary_str = ''.join(format(byte, '08b') for byte in stream_bytes)
                 stream_entry["binary"] = binary_str
             output_data["streams"].append(stream_entry)
 
@@ -427,16 +425,16 @@ Protocol: Deterministic stream generation with basis matching and XOR folding
             output_lines.append("Generated Streams:")
             output_lines.append("-" * 60)
 
-        for i, key in enumerate(keys, 1):
+        for i, stream in enumerate(streams, 1):
             if args.quiet:
-                output_lines.append(key)
+                output_lines.append(stream)
             elif args.binary:
-                key_bytes = bytes.fromhex(key)
-                binary_str = ''.join(format(byte, '08b') for byte in key_bytes)
-                output_lines.append(f"Stream {i:6d}: {key}")
+                stream_bytes = bytes.fromhex(stream)
+                binary_str = ''.join(format(byte, '08b') for byte in stream_bytes)
+                output_lines.append(f"Stream {i:6d}: {stream}")
                 output_lines.append(f"           Binary: {binary_str}")
             else:
-                output_lines.append(f"Stream {i:6d}: {key}")
+                output_lines.append(f"Stream {i:6d}: {stream}")
 
         output_str = "\n".join(output_lines)
 

@@ -1,10 +1,10 @@
 """
-GoldenSeed - Deterministic High-Entropy Byte Streams
+GoldenSeed - Deterministic PRNG (Pseudo-Random Number Generator)
 
-⚠️ NOT FOR CRYPTOGRAPHY: This library generates deterministic pseudo-random
-streams and must NOT be used for cryptographic purposes.
+⚠️ NOT FOR CRYPTOGRAPHY: This is a PRNG that generates deterministic pseudo-random
+streams and must NOT be used for cryptographic purposes (passwords, keys, tokens, etc.).
 
-This package provides deterministic stream generation for:
+This PRNG is designed for:
 - Procedural content generation (games, simulations)
 - Reproducible test data and fixtures
 - Deterministic noise functions
@@ -12,16 +12,16 @@ This package provides deterministic stream generation for:
 - Space-efficient storage of procedural content
 
 Core Implementations:
-- Universal stream generator with deterministic output
+- Deterministic PRNG based on golden ratio seed
 - Test vector generation for cross-platform validation
 - Golden ratio-based deterministic sequences
 - Commercial licensing watermarking system
 
 Example Usage:
-    >>> from gq import UniversalQKD, GQS1
+    >>> from gq import GoldenStreamGenerator, GQS1
     >>>
     >>> # Generate deterministic byte streams
-    >>> generator = UniversalQKD()
+    >>> generator = GoldenStreamGenerator()
     >>> stream = next(generator)
     >>> print(stream.hex())
     '3c732e0d04dac163a5cc2b15c7caf42c'
@@ -32,9 +32,9 @@ Example Usage:
     'a01611f01e8207a27c1529c3650c4838'
 """
 
-from .universal_qkd import (
-    universal_qkd_generator as UniversalQKD,
-    generate_keys as generate_universal_keys,
+from .stream_generator import (
+    golden_stream_generator as GoldenStreamGenerator,
+    generate_streams,
     HEX_SEED,
     EXPECTED_CHECKSUM,
     GOLDEN_RATIO,
@@ -46,6 +46,10 @@ from .universal_qkd import (
     E_HEX,
     SQRT2_HEX,
 )
+
+# Backward compatibility aliases (deprecated - will be removed in future versions)
+UniversalQKD = GoldenStreamGenerator
+generate_universal_keys = generate_streams
 
 from .gqs1 import (
     generate_test_vectors as generate_gqs1_vectors,
@@ -74,12 +78,16 @@ from .watermark import (
 )
 
 __all__ = [
-    "UniversalQKD",
-    "generate_universal_keys",
+    # Primary API (honest names)
+    "GoldenStreamGenerator",
+    "generate_streams",
     "GQS1",
     "generate_gqs1_vectors",
     "HEX_SEED",
     "EXPECTED_CHECKSUM",
+    # Backward compatibility (deprecated)
+    "UniversalQKD",
+    "generate_universal_keys",
     # Mathematical constants
     "GOLDEN_RATIO",
     "PI",
@@ -108,5 +116,5 @@ __all__ = [
     "check_watermark_present",
 ]
 
-__version__ = "3.0.0"
+__version__ = "4.0.0"
 __author__ = "beanapologist"

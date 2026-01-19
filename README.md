@@ -1,6 +1,6 @@
 # 🌟 GoldenSeed
 
-**Infinite reproducible high-entropy streams from tiny fixed seeds**
+**Deterministic PRNG (Pseudo-Random Number Generator) — Infinite reproducible streams from tiny seeds**
 
 [![GitHub Stars](https://img.shields.io/github/stars/beanapologist/seed?style=for-the-badge&logo=github&color=yellow)](https://github.com/beanapologist/seed/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/beanapologist/seed?style=for-the-badge&logo=github&color=blue)](https://github.com/beanapologist/seed/network/members)
@@ -13,9 +13,9 @@
 
 ## 🎯 What is GoldenSeed?
 
-GoldenSeed is a **deterministic high-entropy byte stream generator** that creates infinite, reproducible sequences from tiny fixed seeds. Perfect for **procedural generation**, **reproducible testing**, **deterministic simulations**, and **space-efficient storage**.
+GoldenSeed is a **deterministic PRNG (Pseudo-Random Number Generator)** that creates infinite, reproducible pseudo-random sequences from tiny fixed seeds. Perfect for **procedural generation**, **reproducible testing**, **deterministic simulations**, and **space-efficient storage**.
 
-> ⚠️ **NOT FOR CRYPTOGRAPHY** — GoldenSeed is designed for procedural content generation and deterministic simulations, not cryptographic applications.
+> ⚠️ **NOT FOR CRYPTOGRAPHY** — GoldenSeed is a PRNG designed for procedural content generation and deterministic simulations, NOT for cryptographic applications (passwords, keys, tokens, etc.).
 
 ### ✨ Key Features
 
@@ -31,9 +31,49 @@ GoldenSeed is a **deterministic high-entropy byte stream generator** that create
 
 ## 🎬 See It In Action
 
-![Procedural Generation Demo](https://via.placeholder.com/800x400/1a1a2e/eee?text=Procedural+Noise+%7C+Infinite+Worlds+%7C+Deterministic+Generation)
+### 🎮 Procedural Dungeon Generation
 
-> 🎨 **Coming Soon**: Animated visualizations of Perlin-like noise, procedural terrain, and infinite stream generation!
+```python
+from gq import GoldenStreamGenerator
+
+class ProceduralDungeon:
+    """Generate deterministic roguelike dungeons."""
+    def __init__(self, seed=0):
+        self.prng = GoldenStreamGenerator()
+        for _ in range(seed): next(self.prng)  # Skip to seed position
+
+    def _rand(self, max_val):
+        return int.from_bytes(next(self.prng)[:4], 'big') % max_val
+
+# Same seed = Same dungeon, every time!
+dungeon1 = ProceduralDungeon(seed=42)
+dungeon2 = ProceduralDungeon(seed=42)
+
+# Perfect for:
+# • Roguelike dungeon generation
+# • Minecraft-style world seeds
+# • Multiplayer map sharing (share seed, not map!)
+# • Speedrun categories by seed
+```
+
+**Seed 42 Output (100% reproducible):**
+```
+╔════════════════════════════════════════╗
+║██████████████████E·████████████████████║
+║█████E███████··^██··████████████████████║
+║█████·███████···███████████████!████████║
+║██████████████████████████████!·E███████║
+║███████████████████████████████E████████║
+║████████████████·!██████████████████████║
+║██████████████·$E>·█████████████████████║
+║██████████████·····█████████████████████║
+║██████████·███E@E·E█████████████████████║
+║█████████··████··E██████████████E$██████║
+╚════════════════════════════════════════╝
+  @=Player  $=Treasure  E=Enemy  >=Stairs
+```
+
+👉 **[Run Full Demo](examples/procedural_dungeon_demo.py)** — See different seeds generate completely different dungeons!
 
 ---
 
@@ -48,10 +88,10 @@ pip install golden-seed
 ### Basic Usage
 
 ```python
-from gq import UniversalQKD
+from gq import GoldenStreamGenerator
 
 # Create a generator (uses built-in golden ratio seed)
-generator = UniversalQKD()
+generator = GoldenStreamGenerator()
 
 # Generate infinite deterministic bytes
 chunk1 = next(generator)  # 16 bytes
@@ -59,19 +99,19 @@ chunk2 = next(generator)  # another 16 bytes
 chunk3 = next(generator)  # and so on...
 
 # Same seed always produces the same sequence
-gen1 = UniversalQKD()
-gen2 = UniversalQKD()
+gen1 = GoldenStreamGenerator()
+gen2 = GoldenStreamGenerator()
 assert next(gen1) == next(gen2)  # ✓ Identical!
 ```
 
 ### Procedural World Generation
 
 ```python
-from gq import UniversalQKD
+from gq import GoldenStreamGenerator
 
 class WorldGenerator:
     def __init__(self, world_seed=0):
-        self.generator = UniversalQKD()
+        self.generator = GoldenStreamGenerator()
         # Skip to world-specific position
         for _ in range(world_seed):
             next(self.generator)
@@ -92,6 +132,7 @@ print(f"Biome: {chunk['biome']}, Elevation: {chunk['elevation']}")
 
 ### More Examples
 
+- 🎮 [Procedural Dungeon Demo](examples/procedural_dungeon_demo.py) — Roguelike dungeon generation
 - [Procedural Generation](examples/procedural_generation.py) — Games, world-building, infinite content
 - [Seed Distribution Demo](examples/seed_distribution_demo.py) — Extreme compression, bandwidth savings
 - [Binary Fusion Tap](examples/binary_fusion_tap.py) — Core algorithm examples in 6+ languages
@@ -174,7 +215,7 @@ Store **500 MB** of data as a **32-byte seed**. Achieve compression ratios of **
 
 ```python
 # Generate 500 MB from 32 bytes
-generator = UniversalQKD()
+generator = GoldenStreamGenerator()
 data = b''.join([next(generator) for _ in range(32_000_000)])
 # 500 MB generated from tiny seed!
 ```

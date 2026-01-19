@@ -11,16 +11,16 @@ Tests validate:
 """
 
 import unittest
-from gq.nist_pqc import (
+from gq.pqc_test_vectors import (
     PQCAlgorithm,
     PQCSecurityLevel,
-    generate_hybrid_key,
-    generate_hybrid_key_stream,
-    generate_kyber_seed,
-    generate_dilithium_seed,
-    generate_sphincs_seed,
-    validate_pqc_seed_entropy,
-    get_algorithm_info,
+    generate_test_vector,
+    generate_test_vector_stream,
+    generate_kyber_test_seed,
+    generate_dilithium_test_seed,
+    generate_sphincs_test_seed,
+    validate_seed_format,
+    get_algorithm_format_info,
     ALGORITHM_SECURITY_LEVELS,
     ALGORITHM_SEED_LENGTHS,
 )
@@ -83,7 +83,7 @@ class TestHybridKeyGeneration(unittest.TestCase):
     
     def test_generate_kyber512_seed(self):
         """Test Kyber-512 hybrid key generation."""
-        det_key, pqc_seed = generate_hybrid_key(PQCAlgorithm.KYBER512)
+        det_key, pqc_seed = generate_test_vector(PQCAlgorithm.KYBER512)
         self.assertEqual(len(det_key), 16)  # GCP-1 produces 16-byte keys
         self.assertEqual(len(pqc_seed), 32)  # Kyber needs 32-byte seed
         self.assertIsInstance(det_key, bytes)
@@ -91,7 +91,7 @@ class TestHybridKeyGeneration(unittest.TestCase):
     
     def test_generate_kyber768_seed(self):
         """Test Kyber-768 hybrid key generation."""
-        det_key, pqc_seed = generate_hybrid_key(PQCAlgorithm.KYBER768)
+        det_key, pqc_seed = generate_test_vector(PQCAlgorithm.KYBER768)
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 32)
         
@@ -101,7 +101,7 @@ class TestHybridKeyGeneration(unittest.TestCase):
     
     def test_generate_kyber1024_seed(self):
         """Test Kyber-1024 hybrid key generation."""
-        det_key, pqc_seed = generate_hybrid_key(PQCAlgorithm.KYBER1024)
+        det_key, pqc_seed = generate_test_vector(PQCAlgorithm.KYBER1024)
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 32)
         
@@ -111,44 +111,44 @@ class TestHybridKeyGeneration(unittest.TestCase):
     
     def test_generate_dilithium2_seed(self):
         """Test Dilithium2 hybrid key generation."""
-        det_key, pqc_seed = generate_hybrid_key(PQCAlgorithm.DILITHIUM2)
+        det_key, pqc_seed = generate_test_vector(PQCAlgorithm.DILITHIUM2)
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 32)
     
     def test_generate_dilithium3_seed(self):
         """Test Dilithium3 hybrid key generation."""
-        det_key, pqc_seed = generate_hybrid_key(PQCAlgorithm.DILITHIUM3)
+        det_key, pqc_seed = generate_test_vector(PQCAlgorithm.DILITHIUM3)
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 32)
     
     def test_generate_dilithium5_seed(self):
         """Test Dilithium5 hybrid key generation."""
-        det_key, pqc_seed = generate_hybrid_key(PQCAlgorithm.DILITHIUM5)
+        det_key, pqc_seed = generate_test_vector(PQCAlgorithm.DILITHIUM5)
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 32)
     
     def test_generate_sphincs_128f_seed(self):
         """Test SPHINCS+-128f hybrid key generation."""
-        det_key, pqc_seed = generate_hybrid_key(PQCAlgorithm.SPHINCS_PLUS_128F)
+        det_key, pqc_seed = generate_test_vector(PQCAlgorithm.SPHINCS_PLUS_128F)
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 48)
     
     def test_generate_sphincs_192f_seed(self):
         """Test SPHINCS+-192f hybrid key generation."""
-        det_key, pqc_seed = generate_hybrid_key(PQCAlgorithm.SPHINCS_PLUS_192F)
+        det_key, pqc_seed = generate_test_vector(PQCAlgorithm.SPHINCS_PLUS_192F)
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 64)
     
     def test_generate_sphincs_256f_seed(self):
         """Test SPHINCS+-256f hybrid key generation."""
-        det_key, pqc_seed = generate_hybrid_key(PQCAlgorithm.SPHINCS_PLUS_256F)
+        det_key, pqc_seed = generate_test_vector(PQCAlgorithm.SPHINCS_PLUS_256F)
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 64)
     
     def test_deterministic_generation(self):
         """Test that hybrid key generation is deterministic."""
-        det_key1, pqc_seed1 = generate_hybrid_key(PQCAlgorithm.KYBER768)
-        det_key2, pqc_seed2 = generate_hybrid_key(PQCAlgorithm.KYBER768)
+        det_key1, pqc_seed1 = generate_test_vector(PQCAlgorithm.KYBER768)
+        det_key2, pqc_seed2 = generate_test_vector(PQCAlgorithm.KYBER768)
         
         # First keys should match (deterministic)
         self.assertEqual(det_key1, det_key2)
@@ -156,8 +156,8 @@ class TestHybridKeyGeneration(unittest.TestCase):
     
     def test_context_affects_pqc_seed(self):
         """Test that context parameter affects PQC seed derivation."""
-        det_key1, pqc_seed1 = generate_hybrid_key(PQCAlgorithm.KYBER768, context=b"CONTEXT_A")
-        det_key2, pqc_seed2 = generate_hybrid_key(PQCAlgorithm.KYBER768, context=b"CONTEXT_B")
+        det_key1, pqc_seed1 = generate_test_vector(PQCAlgorithm.KYBER768, context=b"CONTEXT_A")
+        det_key2, pqc_seed2 = generate_test_vector(PQCAlgorithm.KYBER768, context=b"CONTEXT_B")
         
         # Different contexts should produce different PQC seeds
         # (deterministic keys will be the same due to generator reset)
@@ -165,8 +165,8 @@ class TestHybridKeyGeneration(unittest.TestCase):
     
     def test_different_algorithms_produce_different_seeds(self):
         """Test that different algorithms produce different PQC seeds."""
-        _, kyber_seed = generate_hybrid_key(PQCAlgorithm.KYBER768)
-        _, dilithium_seed = generate_hybrid_key(PQCAlgorithm.DILITHIUM3)
+        _, kyber_seed = generate_test_vector(PQCAlgorithm.KYBER768)
+        _, dilithium_seed = generate_test_vector(PQCAlgorithm.DILITHIUM3)
         
         # Different algorithms should produce different seeds
         self.assertNotEqual(kyber_seed, dilithium_seed)
@@ -177,7 +177,7 @@ class TestHybridKeyStream(unittest.TestCase):
     
     def test_generate_key_stream(self):
         """Test generating multiple hybrid keys."""
-        keys = generate_hybrid_key_stream(PQCAlgorithm.KYBER768, count=5)
+        keys = generate_test_vector_stream(PQCAlgorithm.KYBER768, count=5)
         self.assertEqual(len(keys), 5)
         
         # Verify each key pair
@@ -187,7 +187,7 @@ class TestHybridKeyStream(unittest.TestCase):
     
     def test_key_stream_uniqueness(self):
         """Test that key stream produces unique keys."""
-        keys = generate_hybrid_key_stream(PQCAlgorithm.KYBER768, count=10)
+        keys = generate_test_vector_stream(PQCAlgorithm.KYBER768, count=10)
         
         # All deterministic keys should be unique
         det_keys = [k[0] for k in keys]
@@ -199,7 +199,7 @@ class TestHybridKeyStream(unittest.TestCase):
     
     def test_single_key_stream(self):
         """Test generating a single key via stream."""
-        keys = generate_hybrid_key_stream(PQCAlgorithm.DILITHIUM3, count=1)
+        keys = generate_test_vector_stream(PQCAlgorithm.DILITHIUM3, count=1)
         self.assertEqual(len(keys), 1)
         det_key, pqc_seed = keys[0]
         self.assertEqual(len(det_key), 16)
@@ -207,7 +207,7 @@ class TestHybridKeyStream(unittest.TestCase):
     
     def test_key_stream_with_context(self):
         """Test key stream generation with context."""
-        keys = generate_hybrid_key_stream(
+        keys = generate_test_vector_stream(
             PQCAlgorithm.KYBER768,
             count=3,
             context=b"TEST_CONTEXT"
@@ -225,73 +225,73 @@ class TestConvenienceFunctions(unittest.TestCase):
     
     def test_generate_kyber_seed_default(self):
         """Test Kyber seed generation with default level."""
-        det_key, pqc_seed = generate_kyber_seed()
+        det_key, pqc_seed = generate_kyber_test_seed()
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 32)
     
     def test_generate_kyber_seed_512(self):
         """Test Kyber-512 seed generation."""
-        det_key, pqc_seed = generate_kyber_seed(level=512)
+        det_key, pqc_seed = generate_kyber_test_seed(level=512)
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 32)
     
     def test_generate_kyber_seed_768(self):
         """Test Kyber-768 seed generation."""
-        det_key, pqc_seed = generate_kyber_seed(level=768)
+        det_key, pqc_seed = generate_kyber_test_seed(level=768)
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 32)
     
     def test_generate_kyber_seed_1024(self):
         """Test Kyber-1024 seed generation."""
-        det_key, pqc_seed = generate_kyber_seed(level=1024)
+        det_key, pqc_seed = generate_kyber_test_seed(level=1024)
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 32)
     
     def test_generate_dilithium_seed_default(self):
         """Test Dilithium seed generation with default level."""
-        det_key, pqc_seed = generate_dilithium_seed()
+        det_key, pqc_seed = generate_dilithium_test_seed()
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 32)
     
     def test_generate_dilithium_seed_2(self):
         """Test Dilithium2 seed generation."""
-        det_key, pqc_seed = generate_dilithium_seed(level=2)
+        det_key, pqc_seed = generate_dilithium_test_seed(level=2)
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 32)
     
     def test_generate_dilithium_seed_3(self):
         """Test Dilithium3 seed generation."""
-        det_key, pqc_seed = generate_dilithium_seed(level=3)
+        det_key, pqc_seed = generate_dilithium_test_seed(level=3)
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 32)
     
     def test_generate_dilithium_seed_5(self):
         """Test Dilithium5 seed generation."""
-        det_key, pqc_seed = generate_dilithium_seed(level=5)
+        det_key, pqc_seed = generate_dilithium_test_seed(level=5)
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 32)
     
     def test_generate_sphincs_seed_default(self):
         """Test SPHINCS+ seed generation with default level."""
-        det_key, pqc_seed = generate_sphincs_seed()
+        det_key, pqc_seed = generate_sphincs_test_seed()
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 48)
     
     def test_generate_sphincs_seed_128(self):
         """Test SPHINCS+-128f seed generation."""
-        det_key, pqc_seed = generate_sphincs_seed(level=128)
+        det_key, pqc_seed = generate_sphincs_test_seed(level=128)
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 48)
     
     def test_generate_sphincs_seed_192(self):
         """Test SPHINCS+-192f seed generation."""
-        det_key, pqc_seed = generate_sphincs_seed(level=192)
+        det_key, pqc_seed = generate_sphincs_test_seed(level=192)
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 64)
     
     def test_generate_sphincs_seed_256(self):
         """Test SPHINCS+-256f seed generation."""
-        det_key, pqc_seed = generate_sphincs_seed(level=256)
+        det_key, pqc_seed = generate_sphincs_test_seed(level=256)
         self.assertEqual(len(det_key), 16)
         self.assertEqual(len(pqc_seed), 64)
 
@@ -302,8 +302,8 @@ class TestEntropyValidation(unittest.TestCase):
     def test_validate_good_entropy(self):
         """Test validation of high-quality entropy."""
         # Generate a real PQC seed
-        _, pqc_seed = generate_hybrid_key(PQCAlgorithm.KYBER768)
-        metrics = validate_pqc_seed_entropy(pqc_seed)
+        _, pqc_seed = generate_test_vector(PQCAlgorithm.KYBER768)
+        metrics = validate_seed_format(pqc_seed)
         
         self.assertIn('shannon_entropy', metrics)
         self.assertIn('byte_diversity', metrics)
@@ -316,7 +316,7 @@ class TestEntropyValidation(unittest.TestCase):
     
     def test_validate_empty_seed(self):
         """Test validation of empty seed."""
-        metrics = validate_pqc_seed_entropy(b'')
+        metrics = validate_seed_format(b'')
         self.assertEqual(metrics['shannon_entropy'], 0.0)
         self.assertEqual(metrics['byte_diversity'], 0.0)
         self.assertFalse(metrics['passes_basic_checks'])
@@ -325,7 +325,7 @@ class TestEntropyValidation(unittest.TestCase):
         """Test validation of low-entropy seed."""
         # Create a low-entropy seed (all zeros)
         low_entropy_seed = b'\x00' * 32
-        metrics = validate_pqc_seed_entropy(low_entropy_seed)
+        metrics = validate_seed_format(low_entropy_seed)
         
         # All zeros should have 0 entropy
         self.assertEqual(metrics['shannon_entropy'], 0.0)
@@ -334,8 +334,8 @@ class TestEntropyValidation(unittest.TestCase):
     def test_validate_different_lengths(self):
         """Test entropy validation with different seed lengths."""
         for algorithm in [PQCAlgorithm.KYBER768, PQCAlgorithm.SPHINCS_PLUS_128F, PQCAlgorithm.SPHINCS_PLUS_256F]:
-            _, pqc_seed = generate_hybrid_key(algorithm)
-            metrics = validate_pqc_seed_entropy(pqc_seed)
+            _, pqc_seed = generate_test_vector(algorithm)
+            metrics = validate_seed_format(pqc_seed)
             
             # All generated seeds should pass quality checks
             self.assertTrue(metrics['passes_basic_checks'],
@@ -347,7 +347,7 @@ class TestAlgorithmInfo(unittest.TestCase):
     
     def test_get_kyber768_info(self):
         """Test getting Kyber-768 algorithm information."""
-        info = get_algorithm_info(PQCAlgorithm.KYBER768)
+        info = get_algorithm_format_info(PQCAlgorithm.KYBER768)
         
         self.assertEqual(info['name'], 'Kyber-768')
         self.assertEqual(info['security_level'], 3)
@@ -356,7 +356,7 @@ class TestAlgorithmInfo(unittest.TestCase):
     
     def test_get_dilithium3_info(self):
         """Test getting Dilithium3 algorithm information."""
-        info = get_algorithm_info(PQCAlgorithm.DILITHIUM3)
+        info = get_algorithm_format_info(PQCAlgorithm.DILITHIUM3)
         
         self.assertEqual(info['name'], 'Dilithium3')
         self.assertEqual(info['security_level'], 3)
@@ -365,7 +365,7 @@ class TestAlgorithmInfo(unittest.TestCase):
     
     def test_get_sphincs_info(self):
         """Test getting SPHINCS+ algorithm information."""
-        info = get_algorithm_info(PQCAlgorithm.SPHINCS_PLUS_256F)
+        info = get_algorithm_format_info(PQCAlgorithm.SPHINCS_PLUS_256F)
         
         self.assertEqual(info['name'], 'SPHINCS+-256f')
         self.assertEqual(info['security_level'], 5)
@@ -375,7 +375,7 @@ class TestAlgorithmInfo(unittest.TestCase):
     def test_all_algorithms_have_info(self):
         """Test that all algorithms can return info."""
         for algorithm in PQCAlgorithm:
-            info = get_algorithm_info(algorithm)
+            info = get_algorithm_format_info(algorithm)
             
             self.assertIn('name', info)
             self.assertIn('security_level', info)
@@ -395,27 +395,27 @@ class TestNISTPQCIntegration(unittest.TestCase):
     def test_full_kyber_workflow(self):
         """Test complete workflow for Kyber key generation."""
         # Generate hybrid key
-        det_key, pqc_seed = generate_kyber_seed(level=768, context=b"KEYGEN")
+        det_key, pqc_seed = generate_kyber_test_seed(level=768, context=b"KEYGEN")
         
         # Validate seed quality
-        metrics = validate_pqc_seed_entropy(pqc_seed)
+        metrics = validate_seed_format(pqc_seed)
         self.assertTrue(metrics['passes_basic_checks'])
         
         # Get algorithm info
-        info = get_algorithm_info(PQCAlgorithm.KYBER768)
+        info = get_algorithm_format_info(PQCAlgorithm.KYBER768)
         self.assertEqual(len(pqc_seed), info['seed_length'])
     
     def test_full_dilithium_workflow(self):
         """Test complete workflow for Dilithium signature generation."""
         # Generate hybrid key
-        det_key, pqc_seed = generate_dilithium_seed(level=3, context=b"SIGN")
+        det_key, pqc_seed = generate_dilithium_test_seed(level=3, context=b"SIGN")
         
         # Validate seed quality
-        metrics = validate_pqc_seed_entropy(pqc_seed)
+        metrics = validate_seed_format(pqc_seed)
         self.assertTrue(metrics['passes_basic_checks'])
         
         # Get algorithm info
-        info = get_algorithm_info(PQCAlgorithm.DILITHIUM3)
+        info = get_algorithm_format_info(PQCAlgorithm.DILITHIUM3)
         self.assertEqual(info['type'], 'Signature')
     
     def test_multiple_algorithm_generation(self):
@@ -428,11 +428,11 @@ class TestNISTPQCIntegration(unittest.TestCase):
         
         seeds = {}
         for algorithm in algorithms:
-            det_key, pqc_seed = generate_hybrid_key(algorithm, context=b"MULTI")
+            det_key, pqc_seed = generate_test_vector(algorithm, context=b"MULTI")
             seeds[algorithm] = (det_key, pqc_seed)
             
             # Validate each seed
-            metrics = validate_pqc_seed_entropy(pqc_seed)
+            metrics = validate_seed_format(pqc_seed)
             self.assertTrue(metrics['passes_basic_checks'])
         
         # Verify all seeds are unique

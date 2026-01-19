@@ -12,10 +12,10 @@ from gq.entropy_testing import (
     analyze_key_stream,
     validate_zero_bias
 )
-from gq.universal_qkd import universal_qkd_generator
-from gq.nist_pqc import (
-    generate_hybrid_key,
-    generate_hybrid_key_stream,
+from gq.stream_generator import golden_stream_generator
+from gq.pqc_test_vectors import (
+    generate_test_vector,
+    generate_test_vector_stream,
     PQCAlgorithm
 )
 
@@ -291,7 +291,7 @@ class TestUniversalQKDEntropy(unittest.TestCase):
     
     def test_universal_qkd_single_key_entropy(self):
         """Test entropy of a single Universal QKD key."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         key = next(generator)
         
         analyzer = EntropyAnalyzer(key)
@@ -304,7 +304,7 @@ class TestUniversalQKDEntropy(unittest.TestCase):
     
     def test_universal_qkd_key_stream_entropy(self):
         """Test entropy across multiple Universal QKD keys."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         keys = [next(generator) for _ in range(100)]
         
         results = analyze_key_stream(keys)
@@ -315,7 +315,7 @@ class TestUniversalQKDEntropy(unittest.TestCase):
     
     def test_universal_qkd_zero_bias(self):
         """Test Universal QKD keys for zero bias."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Test multiple keys
         for _ in range(10):
@@ -330,7 +330,7 @@ class TestNISTPQCEntropy(unittest.TestCase):
     
     def test_kyber_seed_entropy(self):
         """Test entropy of Kyber seed generation."""
-        det_key, pqc_seed = generate_hybrid_key(PQCAlgorithm.KYBER768)
+        det_key, pqc_seed = generate_test_vector(PQCAlgorithm.KYBER768)
         
         # Test deterministic key - deterministic keys have lower per-key entropy
         det_analyzer = EntropyAnalyzer(det_key)
@@ -345,7 +345,7 @@ class TestNISTPQCEntropy(unittest.TestCase):
     
     def test_dilithium_seed_entropy(self):
         """Test entropy of Dilithium seed generation."""
-        det_key, pqc_seed = generate_hybrid_key(PQCAlgorithm.DILITHIUM3)
+        det_key, pqc_seed = generate_test_vector(PQCAlgorithm.DILITHIUM3)
         
         combined = det_key + pqc_seed
         analyzer = EntropyAnalyzer(combined)
@@ -356,7 +356,7 @@ class TestNISTPQCEntropy(unittest.TestCase):
     
     def test_sphincs_seed_entropy(self):
         """Test entropy of SPHINCS+ seed generation."""
-        det_key, pqc_seed = generate_hybrid_key(PQCAlgorithm.SPHINCS_PLUS_128F)
+        det_key, pqc_seed = generate_test_vector(PQCAlgorithm.SPHINCS_PLUS_128F)
         
         # SPHINCS+ uses 48-byte seeds
         self.assertEqual(len(pqc_seed), 48)
@@ -368,7 +368,7 @@ class TestNISTPQCEntropy(unittest.TestCase):
     
     def test_hybrid_key_stream_entropy(self):
         """Test entropy across stream of hybrid keys."""
-        keys = generate_hybrid_key_stream(PQCAlgorithm.KYBER768, count=50)
+        keys = generate_test_vector_stream(PQCAlgorithm.KYBER768, count=50)
         
         # Extract all deterministic keys and PQC seeds
         det_keys = [det_key for det_key, _ in keys]
@@ -394,7 +394,7 @@ class TestNISTPQCEntropy(unittest.TestCase):
         ]
         
         for algorithm in algorithms:
-            det_key, pqc_seed = generate_hybrid_key(algorithm)
+            det_key, pqc_seed = generate_test_vector(algorithm)
             
             # Check both components
             det_result = validate_zero_bias(det_key)
@@ -411,7 +411,7 @@ class TestIntegrationEntropy(unittest.TestCase):
     
     def test_large_key_batch_entropy(self):
         """Test entropy on large batch of keys."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         keys = [next(generator) for _ in range(1000)]
         
         results = analyze_key_stream(keys)
@@ -433,7 +433,7 @@ class TestIntegrationEntropy(unittest.TestCase):
         ]
         
         for algorithm in algorithms:
-            keys = generate_hybrid_key_stream(algorithm, count=50)
+            keys = generate_test_vector_stream(algorithm, count=50)
             pqc_seeds = [pqc_seed for _, pqc_seed in keys]
             
             results = analyze_key_stream(pqc_seeds)

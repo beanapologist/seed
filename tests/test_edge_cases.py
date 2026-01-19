@@ -21,13 +21,13 @@ from typing import List
 # Add parent directory for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from gq import UniversalQKD, GQS1
-from gq.universal_qkd import (
+from gq import GoldenStreamGenerator, GQS1
+from gq.stream_generator import (
     verify_seed_checksum,
-    basis_match,
-    collect_sifted_bits,
-    xor_fold_hardening,
-    universal_qkd_generator,
+    bit_selection_check,
+    collect_selected_bits,
+    xor_fold_output,
+    golden_stream_generator,
 )
 from gq.gqs1_core import (
     hash_drbg_ratchet,
@@ -39,11 +39,11 @@ from gq.gqs1_core import (
 class TestBoundaryValues(unittest.TestCase):
     """Test suite for boundary value conditions."""
     
-    def test_basis_match_all_values(self):
+    def test_bit_selection_check_all_values(self):
         """Test basis match with all possible byte values (0-255)."""
         match_count = 0
         for byte_val in range(256):
-            if basis_match(byte_val):
+            if bit_selection_check(byte_val):
                 match_count += 1
         
         # Verify ~50% efficiency (128 out of 256 values should match)
@@ -52,44 +52,44 @@ class TestBoundaryValues(unittest.TestCase):
         self.assertGreaterEqual(match_count, 100)
         self.assertLessEqual(match_count, 156)
     
-    def test_basis_match_boundary_bytes(self):
+    def test_bit_selection_check_boundary_bytes(self):
         """Test basis match with boundary byte values."""
         # Test minimum value (0b00000000: bits 1 and 2 are both 0, so match)
-        result_0 = basis_match(0b00000000)
+        result_0 = bit_selection_check(0b00000000)
         self.assertIsInstance(result_0, bool)
         
         # Test maximum value
-        result_255 = basis_match(0b11111111)
+        result_255 = bit_selection_check(0b11111111)
         self.assertIsInstance(result_255, bool)
         
         # Test specific patterns
-        result_6 = basis_match(0b00000110)  # bits 1 and 2 both 1
-        result_2 = basis_match(0b00000010)  # bit 1 is 1, bit 2 is 0
+        result_6 = bit_selection_check(0b00000110)  # bits 1 and 2 both 1
+        result_2 = bit_selection_check(0b00000010)  # bit 1 is 1, bit 2 is 0
         
         # These should produce specific boolean results based on the pattern
         self.assertIsInstance(result_6, bool)
         self.assertIsInstance(result_2, bool)
     
-    def test_xor_fold_hardening_edge_cases(self):
+    def test_xor_fold_output_edge_cases(self):
         """Test XOR folding with edge case bit patterns."""
         # All zeros
         bits_all_zero = [0] * 256
-        folded = xor_fold_hardening(bits_all_zero)
+        folded = xor_fold_output(bits_all_zero)
         self.assertEqual(folded, bytes(16))  # Should produce all zero bytes
         
         # All ones
         bits_all_one = [1] * 256
-        folded = xor_fold_hardening(bits_all_one)
+        folded = xor_fold_output(bits_all_one)
         self.assertEqual(folded, bytes(16))  # XOR of 1^1 = 0
         
         # Alternating pattern
         bits_alternating = [i % 2 for i in range(256)]
-        folded = xor_fold_hardening(bits_alternating)
+        folded = xor_fold_output(bits_alternating)
         self.assertEqual(len(folded), 16)
         
         # First half all 0, second half all 1
         bits_half_half = [0] * 128 + [1] * 128
-        folded = xor_fold_hardening(bits_half_half)
+        folded = xor_fold_output(bits_half_half)
         self.assertEqual(folded, bytes([0xFF] * 16))  # Should produce all 1s
     
     def test_hash_drbg_ratchet_counter_boundaries(self):
@@ -117,7 +117,7 @@ class TestBoundaryValues(unittest.TestCase):
     
     def test_key_generation_with_zero_count(self):
         """Test that requesting 0 keys returns empty list."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         keys = []
         # Don't iterate if count is 0
         for i, key in enumerate(generator):
@@ -127,7 +127,7 @@ class TestBoundaryValues(unittest.TestCase):
     
     def test_key_generation_single_key(self):
         """Test generation of exactly one key."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         key = next(generator)
         self.assertEqual(len(key), 16)
         self.assertIsInstance(key, bytes)
@@ -156,37 +156,37 @@ class TestInvalidInputHandling(unittest.TestCase):
         result = verify_seed_checksum(corrupted_seed)
         self.assertFalse(result)
     
-    def test_basis_match_with_negative_would_fail(self):
+    def test_bit_selection_check_with_negative_would_fail(self):
         """Test that basis_match only accepts valid byte values."""
         # Python's byte values are 0-255, negative values would be type error
         # This test verifies the expected behavior
         with self.assertRaises(TypeError):
-            basis_match("invalid")  # type: ignore
+            bit_selection_check("invalid")  # type: ignore
     
-    def test_xor_fold_hardening_wrong_length(self):
+    def test_xor_fold_output_wrong_length(self):
         """Test XOR folding with incorrect bit count."""
         # Less than 256 bits
         short_bits = [1] * 128
         with self.assertRaises((IndexError, ValueError)):
-            xor_fold_hardening(short_bits)
+            xor_fold_output(short_bits)
         
         # More than 256 bits (should work, only use first 256)
         long_bits = [1] * 300
-        result = xor_fold_hardening(long_bits)
+        result = xor_fold_output(long_bits)
         self.assertEqual(len(result), 16)
 
 
 class TestExtremeParameters(unittest.TestCase):
     """Test suite for extreme parameter combinations."""
     
-    def test_collect_sifted_bits_with_extreme_counter(self):
+    def test_collect_selected_bits_with_extreme_counter(self):
         """Test sifted bit collection with extremely large counter."""
         seed = bytes.fromhex("0000000000000000a8f4979b77e3f93fa8f4979b77e3f93fa8f4979b77e3f93f")
         state = hashlib.sha256(seed).digest()
         
         # Start with very large counter
         large_counter = 10**9
-        sifted_bits, final_state, final_counter = collect_sifted_bits(state, large_counter)
+        sifted_bits, final_state, final_counter = collect_selected_bits(state, large_counter)
         
         self.assertEqual(len(sifted_bits), 256)
         self.assertGreater(final_counter, large_counter)
@@ -194,7 +194,7 @@ class TestExtremeParameters(unittest.TestCase):
     
     def test_consecutive_keys_uniqueness_extreme(self):
         """Test that consecutive keys remain unique even after many generations."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Generate many keys and check for duplicates
         num_keys = 1000
@@ -261,7 +261,7 @@ class TestZeroAndNullHandling(unittest.TestCase):
     def test_all_zero_bits_xor_folding(self):
         """Test XOR folding with all zero bits."""
         bits = [0] * 256
-        folded = xor_fold_hardening(bits)
+        folded = xor_fold_output(bits)
         
         self.assertEqual(len(folded), 16)
         self.assertEqual(folded, bytes(16))
@@ -271,7 +271,7 @@ class TestZeroAndNullHandling(unittest.TestCase):
         for pos in range(256):
             bits = [0] * 256
             bits[pos] = 1
-            folded = xor_fold_hardening(bits)
+            folded = xor_fold_output(bits)
             
             self.assertEqual(len(folded), 16)
             # Should have exactly one bit set in the output
@@ -333,7 +333,7 @@ class TestDeterministicReproducibility(unittest.TestCase):
         """Test that multiple runs produce identical keys."""
         runs = []
         for _ in range(5):
-            generator = universal_qkd_generator()
+            generator = golden_stream_generator()
             keys = [next(generator) for _ in range(10)]
             runs.append(keys)
         

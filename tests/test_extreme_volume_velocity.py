@@ -24,8 +24,8 @@ from typing import Iterator
 # Add parent directory for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from gq import UniversalQKD, GQS1
-from gq.universal_qkd import universal_qkd_generator
+from gq import GoldenStreamGenerator, GQS1
+from gq.stream_generator import golden_stream_generator
 
 
 class TestExtremeVolume(unittest.TestCase):
@@ -38,7 +38,7 @@ class TestExtremeVolume(unittest.TestCase):
         
         # Use streaming hash to avoid memory issues
         hasher = hashlib.sha256()
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         print(f"\nGenerating 10GB stream (this will take several minutes)...")
         start_time = time.time()
@@ -100,7 +100,7 @@ class TestExtremeVolume(unittest.TestCase):
         for counter_val in test_counters:
             try:
                 # Create generator with extreme counter value
-                gen = universal_qkd_generator()
+                gen = golden_stream_generator()
                 
                 # Skip to simulated position
                 for _ in range(min(100, counter_val)):
@@ -124,7 +124,7 @@ class TestExtremeVolume(unittest.TestCase):
         
         # First run
         hasher1 = hashlib.sha256()
-        generator1 = universal_qkd_generator()
+        generator1 = golden_stream_generator()
         
         start = time.time()
         bytes_done = 0
@@ -138,7 +138,7 @@ class TestExtremeVolume(unittest.TestCase):
         
         # Second run (verify determinism)
         hasher2 = hashlib.sha256()
-        generator2 = universal_qkd_generator()
+        generator2 = golden_stream_generator()
         
         start = time.time()
         bytes_done = 0
@@ -169,7 +169,7 @@ class TestUltraHighSpeed(unittest.TestCase):
         
         generators_created = 0
         for _ in range(num_generators):
-            gen = universal_qkd_generator()
+            gen = golden_stream_generator()
             # Pull one value to ensure initialization
             next(gen)
             del gen
@@ -203,7 +203,7 @@ class TestUltraHighSpeed(unittest.TestCase):
         
         def worker(thread_id):
             try:
-                generator = universal_qkd_generator()
+                generator = golden_stream_generator()
                 local_count = 0
                 
                 for _ in range(streams_per_thread):
@@ -251,14 +251,14 @@ class TestUltraHighSpeed(unittest.TestCase):
         cold_times = []
         for _ in range(10):
             start = time.perf_counter()
-            gen = universal_qkd_generator()
+            gen = golden_stream_generator()
             first = next(gen)
             cold_times.append(time.perf_counter() - start)
         
         avg_cold = sum(cold_times) / len(cold_times)
         
         # Warm start (reuse generator)
-        gen = universal_qkd_generator()
+        gen = golden_stream_generator()
         next(gen)  # Prime it
         
         warm_times = []
@@ -286,7 +286,7 @@ class TestMemoryResourceLimits(unittest.TestCase):
     
     def test_billion_value_zero_growth(self):
         """Generate 1 billion values, verify zero memory growth."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Warm up
         for _ in range(1000):
@@ -332,7 +332,7 @@ class TestMemoryResourceLimits(unittest.TestCase):
         
         generators = []
         for _ in range(1000):
-            gen = universal_qkd_generator()
+            gen = golden_stream_generator()
             next(gen)  # Initialize
             generators.append(gen)
         
@@ -348,7 +348,7 @@ class TestMemoryResourceLimits(unittest.TestCase):
     
     def test_long_lived_generator_stability(self):
         """Keep generator alive for 10M values, verify stability."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         target = 10_000_000
         
         print(f"\nLong-lived generator test (10M values)...")
@@ -394,7 +394,7 @@ class TestPrecisionEdgeCases(unittest.TestCase):
             try:
                 # We can't actually iterate to these values,
                 # but we can test the math doesn't overflow
-                generator = universal_qkd_generator()
+                generator = golden_stream_generator()
                 
                 # Generate some streams
                 for _ in range(100):
@@ -416,7 +416,7 @@ class TestPrecisionEdgeCases(unittest.TestCase):
         hashes = []
         for run in range(2):
             hasher = hashlib.sha256()
-            generator = universal_qkd_generator()
+            generator = golden_stream_generator()
             
             bytes_done = 0
             while bytes_done < target_bytes:
@@ -437,7 +437,7 @@ class TestPrecisionEdgeCases(unittest.TestCase):
         target_bytes = 1024 * 1024  # 1MB
         
         hasher = hashlib.sha256()
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         bytes_done = 0
         chunks = []
@@ -463,7 +463,7 @@ class TestPrecisionEdgeCases(unittest.TestCase):
     
     def test_counter_overflow_boundary(self):
         """Test behavior at various counter boundaries."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Test boundaries
         boundaries = [255, 256, 65535, 65536]
@@ -487,7 +487,7 @@ class TestExtremeScalability(unittest.TestCase):
         """Run generator continuously for 10 minutes, measure consistency."""
         duration_seconds = 600  # 10 minutes
         
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         print(f"\nSustained 10-minute generation test...")
         start_time = time.time()

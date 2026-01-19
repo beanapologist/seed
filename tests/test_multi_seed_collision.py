@@ -24,10 +24,10 @@ from collections import Counter
 # Add parent directory for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from gq import UniversalQKD, GQS1
-from gq.universal_qkd import (
-    universal_qkd_generator,
-    collect_sifted_bits,
+from gq import GoldenStreamGenerator, GQS1
+from gq.stream_generator import (
+    golden_stream_generator,
+    collect_selected_bits,
 )
 from gq.gqs1_core import (
     hash_drbg_ratchet,
@@ -40,7 +40,7 @@ class TestSeedCollisionResistance(unittest.TestCase):
     
     def test_no_collisions_within_single_seed_stream(self):
         """Test that a single seed stream produces no collisions."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Generate large number of keys
         num_keys = 100000
@@ -75,7 +75,7 @@ class TestSeedCollisionResistance(unittest.TestCase):
             # Generate sequence
             keys = []
             for i in range(100):
-                sifted, state, counter = collect_sifted_bits(state, counter)
+                sifted, state, counter = collect_selected_bits(state, counter)
                 from gq.universal_qkd import xor_fold_hardening
                 key = xor_fold_hardening(sifted)
                 keys.append(key)
@@ -153,7 +153,7 @@ class TestUniquenessGuarantees(unittest.TestCase):
     
     def test_uniqueness_across_key_positions(self):
         """Test that keys at different positions in stream are unique."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Sample keys at various positions
         sampled_positions = [0, 100, 1000, 10000, 50000]
@@ -181,7 +181,7 @@ class TestUniquenessGuarantees(unittest.TestCase):
         # This tests that the same sequence is always generated
         
         # Create multiple "parallel" generators
-        generators = [universal_qkd_generator() for _ in range(5)]
+        generators = [golden_stream_generator() for _ in range(5)]
         
         # Generate keys from each
         all_keys = []
@@ -235,7 +235,7 @@ class TestSeedDiversityAnalysis(unittest.TestCase):
     
     def test_bit_distribution_uniformity(self):
         """Test that generated keys have uniform bit distribution."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Generate many keys and count bit frequencies
         num_keys = 1000
@@ -263,7 +263,7 @@ class TestSeedDiversityAnalysis(unittest.TestCase):
     
     def test_byte_value_distribution(self):
         """Test that byte values are well-distributed."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Generate keys and collect all byte values
         num_keys = 1000
@@ -296,7 +296,7 @@ class TestSeedDiversityAnalysis(unittest.TestCase):
     
     def test_hamming_distance_distribution(self):
         """Test distribution of Hamming distances between consecutive keys."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Generate consecutive keys and measure Hamming distances
         num_pairs = 1000
@@ -326,7 +326,7 @@ class TestSeedDiversityAnalysis(unittest.TestCase):
     
     def test_entropy_quality_across_stream(self):
         """Test that entropy quality remains high throughout key stream."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Sample keys at different positions and measure entropy
         sample_positions = [0, 1000, 10000, 50000]
@@ -370,7 +370,7 @@ class TestStatisticalProperties(unittest.TestCase):
     
     def test_runs_test(self):
         """Test runs of consecutive bits (should not have long runs)."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Generate keys and concatenate bits
         num_keys = 100
@@ -410,7 +410,7 @@ class TestStatisticalProperties(unittest.TestCase):
     
     def test_chi_square_byte_distribution(self):
         """Test chi-square goodness of fit for byte distribution."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Generate many keys
         num_keys = 1000
@@ -444,7 +444,7 @@ class TestStatisticalProperties(unittest.TestCase):
     
     def test_serial_correlation(self):
         """Test that consecutive keys are not correlated."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Generate key pairs
         num_pairs = 1000

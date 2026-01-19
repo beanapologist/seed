@@ -23,12 +23,12 @@ from typing import List
 # Add parent directory for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from gq import UniversalQKD, GQS1
-from gq.universal_qkd import (
+from gq import GoldenStreamGenerator, GQS1
+from gq.stream_generator import (
     HEX_SEED,
     EXPECTED_CHECKSUM,
     verify_seed_checksum,
-    universal_qkd_generator,
+    golden_stream_generator,
 )
 from gq.gqs1_core import (
     hash_drbg_ratchet,
@@ -57,7 +57,7 @@ class TestPlatformIndependence(unittest.TestCase):
         # This is the known first key from the specification
         EXPECTED_FIRST_KEY = "3c732e0d04dac163a5cc2b15c7caf42c"
         
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         first_key = next(generator)
         
         # Should match expected value
@@ -66,11 +66,11 @@ class TestPlatformIndependence(unittest.TestCase):
     def test_key_sequence_deterministic(self):
         """Test that key sequence is deterministic across runs."""
         # Generate reference sequence
-        generator1 = universal_qkd_generator()
+        generator1 = golden_stream_generator()
         sequence1 = [next(generator1) for _ in range(100)]
         
         # Generate again
-        generator2 = universal_qkd_generator()
+        generator2 = golden_stream_generator()
         sequence2 = [next(generator2) for _ in range(100)]
         
         # Should be identical
@@ -112,7 +112,7 @@ class TestReproducibilityAcrossEnvironments(unittest.TestCase):
         sequences = []
         
         for _ in range(10):
-            generator = universal_qkd_generator()
+            generator = golden_stream_generator()
             sequence = [next(generator) for _ in range(20)]
             sequences.append(sequence)
         
@@ -147,7 +147,7 @@ class TestReproducibilityAcrossEnvironments(unittest.TestCase):
         results = []
         
         for _ in range(5):
-            generator = universal_qkd_generator()
+            generator = golden_stream_generator()
             keys = [next(generator) for _ in range(50)]
             results.append(keys)
         
@@ -343,7 +343,7 @@ class TestCrossVersionCompatibility(unittest.TestCase):
             ("3c732e0d04dac163a5cc2b15c7caf42c", 0),  # First key
         ]
         
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         for expected_hex, position in known_vectors:
             # Generate keys up to position

@@ -23,8 +23,8 @@ from typing import List, Iterator
 # Add parent directory for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from gq import UniversalQKD, GQS1
-from gq.universal_qkd import universal_qkd_generator
+from gq import GoldenStreamGenerator, GQS1
+from gq.stream_generator import golden_stream_generator
 from gq.gqs1_core import generate_test_vectors
 
 
@@ -33,7 +33,7 @@ class TestLargeScaleKeyGeneration(unittest.TestCase):
     
     def test_generate_10k_keys(self):
         """Test generation of 10,000 keys."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         start_time = time.time()
         keys = [next(generator) for _ in range(10000)]
@@ -59,7 +59,7 @@ class TestLargeScaleKeyGeneration(unittest.TestCase):
     
     def test_generate_100k_keys(self):
         """Test generation of 100,000 keys."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         start_time = time.time()
         
@@ -99,7 +99,7 @@ class TestLargeScaleKeyGeneration(unittest.TestCase):
     
     def test_streaming_generation_1m_keys(self):
         """Test streaming generation of 1 million keys without storing all."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         start_time = time.time()
         
@@ -145,7 +145,7 @@ class TestMemoryEfficiency(unittest.TestCase):
     
     def test_memory_efficiency_continuous_generation(self):
         """Test that continuous generation doesn't leak memory."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Force garbage collection before test
         gc.collect()
@@ -170,7 +170,7 @@ class TestMemoryEfficiency(unittest.TestCase):
     
     def test_generator_state_size(self):
         """Test that generator state remains constant size."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Generate some keys to establish state
         for i in range(100):
@@ -182,7 +182,7 @@ class TestMemoryEfficiency(unittest.TestCase):
     
     def test_no_key_storage_in_generator(self):
         """Test that generator doesn't store previously generated keys."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Generate many keys
         for i in range(1000):
@@ -199,7 +199,7 @@ class TestPerformanceBenchmarks(unittest.TestCase):
     
     def test_key_generation_rate(self):
         """Benchmark key generation rate."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Warm up
         for _ in range(100):
@@ -290,7 +290,7 @@ class TestContinuousGeneration(unittest.TestCase):
     
     def test_no_performance_degradation(self):
         """Test that performance doesn't degrade over time."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Generate keys in multiple batches and time each
         batch_size = 1000
@@ -320,7 +320,7 @@ class TestContinuousGeneration(unittest.TestCase):
     
     def test_consistent_output_quality(self):
         """Test that output quality remains consistent over time."""
-        generator = universal_qkd_generator()
+        generator = golden_stream_generator()
         
         # Generate keys at different points in the stream
         early_keys = [next(generator) for _ in range(100)]
@@ -354,7 +354,7 @@ class TestResourceUtilization(unittest.TestCase):
         """Test that multiple concurrent generators are independent."""
         # Create multiple generators
         num_generators = 10
-        generators = [universal_qkd_generator() for _ in range(num_generators)]
+        generators = [golden_stream_generator() for _ in range(num_generators)]
         
         # Generate keys from each
         all_keys = []
@@ -376,7 +376,7 @@ class TestResourceUtilization(unittest.TestCase):
     
     def test_stress_alternating_generation(self):
         """Test alternating between different generation methods."""
-        universal_gen = universal_qkd_generator()
+        universal_gen = golden_stream_generator()
         
         # Alternate between generation methods
         for i in range(100):
@@ -397,7 +397,7 @@ class TestResourceUtilization(unittest.TestCase):
         num_iterations = 1000
         
         for i in range(num_iterations):
-            gen = universal_qkd_generator()
+            gen = golden_stream_generator()
             key = next(gen)
             self.assertEqual(len(key), 16)
             del gen

@@ -25,9 +25,9 @@ try:
         analyze_key_stream,
         validate_zero_bias
     )
-    from gq.universal_qkd import universal_qkd_generator
-    from gq.nist_pqc import (
-        generate_hybrid_key_stream,
+    from gq.stream_generator import golden_stream_generator
+    from gq.pqc_test_vectors import (
+        generate_test_vector_stream,
         PQCAlgorithm,
     )
 except ImportError:
@@ -38,9 +38,9 @@ except ImportError:
         analyze_key_stream,
         validate_zero_bias
     )
-    from gq.universal_qkd import universal_qkd_generator
-    from gq.nist_pqc import (
-        generate_hybrid_key_stream,
+    from gq.stream_generator import golden_stream_generator
+    from gq.pqc_test_vectors import (
+        generate_test_vector_stream,
         PQCAlgorithm,
     )
 
@@ -113,7 +113,7 @@ def analyze_universal_qkd():
     """Analyze Universal QKD key generation entropy."""
     print("Analyzing Universal QKD (GCP-1) key generation...")
     
-    generator = universal_qkd_generator()
+    generator = golden_stream_generator()
     keys = [next(generator) for _ in range(1000)]
     
     results = analyze_key_stream(keys)
@@ -137,7 +137,7 @@ def analyze_nist_pqc_algorithms():
     for algorithm, name in algorithms:
         print(f"Analyzing {name}...")
         
-        keys = generate_hybrid_key_stream(algorithm, count=100)
+        keys = generate_test_vector_stream(algorithm, count=100)
         
         # Analyze deterministic keys
         det_keys = [det_key for det_key, _ in keys]
@@ -159,7 +159,7 @@ def analyze_bias():
     
     # Test Universal QKD
     print("Testing Universal QKD for bias...")
-    generator = universal_qkd_generator()
+    generator = golden_stream_generator()
     qkd_keys = [next(generator) for _ in range(100)]
     
     bias_found = False
@@ -177,7 +177,7 @@ def analyze_bias():
     algorithms = [PQCAlgorithm.KYBER768, PQCAlgorithm.DILITHIUM3, PQCAlgorithm.SPHINCS_PLUS_128F]
     
     for algorithm in algorithms:
-        keys = generate_hybrid_key_stream(algorithm, count=50)
+        keys = generate_test_vector_stream(algorithm, count=50)
         bias_found = False
         
         for i, (det_key, pqc_seed) in enumerate(keys[:10]):

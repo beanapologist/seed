@@ -14,8 +14,8 @@ long_description = (this_directory / "README.md").read_text(encoding='utf-8')
 
 setup(
     name="golden-seed",
-    version="3.0.0",
-    description="GoldenSeed — Infinite reproducible high-entropy streams from tiny fixed seeds. For procedural generation, reproducible testing, and deterministic simulations. NOT FOR CRYPTOGRAPHY.",
+    version="4.0.0",
+    description="GoldenSeed — Deterministic PRNG (Pseudo-Random Number Generator) for procedural generation, reproducible testing, and deterministic simulations. NOT FOR CRYPTOGRAPHY.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="beanapologist",
