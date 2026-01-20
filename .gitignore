@@ -1,0 +1,63 @@
+# Ignore local secrets and keys
+*.key
+*.gpg
+.env
+secrets.*
+
+# OS files
+.DS_Store
+thumbs.db
+
+# Editor backups
+*~
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+*.whl
+*.tar.gz
+
+# Compiled binaries (C, Rust, Go)
+examples/binary_fusion_tap_c
+examples/binary_fusion_tap
+examples/bft
+*.exe
+*.out
+a.out
+
+# Rust
+target/
+Cargo.lock
+
+# Java
+*.class
+
+# JavaScript/Node.js
+node_modules/
+package-lock.json
+*.tgz
+
+# TypeScript
+*.js.map
+
+# Go
+go.sum
+
+# NIST STS Testing
+data/*.txt
+data/*.bin
+results/*.json
+nist-sts/
+
+tests/quantum_seed_test_vectors.json

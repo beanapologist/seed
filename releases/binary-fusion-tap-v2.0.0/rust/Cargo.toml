@@ -1,0 +1,8 @@
+[package]
+name = "binary-fusion-tap"
+version = "2.0.0"
+edition = "2021"
+
+[[bin]]
+name = "binary_fusion_tap"
+path = "binary_fusion_tap.rs"

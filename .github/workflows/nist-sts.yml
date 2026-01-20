@@ -1,0 +1,116 @@
+name: NIST Statistical Test Suite
+
+on:
+  push:
+    branches: [ main, develop, claude/** ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      num_bits:
+        description: 'Number of bits to test'
+        required: false
+        default: '1000000'
+
+jobs:
+  nist-sts-universal:
+    name: NIST STS - Universal Stream Generator
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+    
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: "3.11"
+    
+    - name: Install package
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+    
+    - name: Generate binary data for NIST testing
+      run: |
+        NUM_BITS=${{ github.event.inputs.num_bits || '1000000' }}
+        echo "Generating $NUM_BITS bits from Universal Stream Generator..."
+        python scripts/generate_nist_binary.py -n $NUM_BITS -t universal -o data/nist_universal.txt
+    
+    - name: Run NIST Statistical Tests
+      run: |
+        python scripts/run_nist_tests.py \
+          -i data/nist_universal.txt \
+          -o results/nist_universal_results.json \
+          --alpha 0.01
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v6
+      with:
+        name: nist-sts-universal-results
+        path: |
+          results/nist_universal_results.json
+          data/nist_universal.txt
+        retention-days: 30
+    
+    - name: Display results summary
+      if: always()
+      run: |
+        if [ -f results/nist_universal_results.json ]; then
+          echo "## NIST STS Results - Universal Stream Generator" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          python scripts/display_nist_results.py results/nist_universal_results.json >> $GITHUB_STEP_SUMMARY
+        fi
+
+  nist-sts-validation:
+    name: Validate NIST STS Results
+    runs-on: ubuntu-latest
+    needs: [nist-sts-universal]
+    if: always()
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v7.0.0
+      with:
+        path: artifacts
+    
+    - name: Validate all results
+      run: |
+        echo "## NIST STS Validation Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        TOTAL_PASSED=0
+        TOTAL_FAILED=0
+        
+        for result_file in artifacts/*/results/*.json; do
+          if [ -f "$result_file" ]; then
+            echo "Checking: $result_file"
+            
+            # Extract algorithm name from path
+            ALGO=$(basename $(dirname $(dirname "$result_file")))
+            
+            # Check if tests passed
+            if grep -q '"overall_passed": true' "$result_file"; then
+              echo "✓ $ALGO: PASSED" >> $GITHUB_STEP_SUMMARY
+              TOTAL_PASSED=$((TOTAL_PASSED + 1))
+            else
+              echo "✗ $ALGO: FAILED" >> $GITHUB_STEP_SUMMARY
+              TOTAL_FAILED=$((TOTAL_FAILED + 1))
+            fi
+          fi
+        done
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Total: $TOTAL_PASSED passed, $TOTAL_FAILED failed**" >> $GITHUB_STEP_SUMMARY
+        
+        if [ $TOTAL_FAILED -gt 0 ]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ Some NIST STS tests failed. Review the detailed results in the artifacts." >> $GITHUB_STEP_SUMMARY
+          exit 1
+        else
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✓ All NIST STS tests passed!" >> $GITHUB_STEP_SUMMARY
+        fi

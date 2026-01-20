@@ -1,0 +1,54 @@
+{
+  "name": "@beanapologist/golden-seed",
+  "version": "3.0.0",
+  "description": "GoldenSeed - Infinite reproducible high-entropy streams from tiny fixed seeds. For procedural generation, reproducible testing, and deterministic simulations. NOT FOR CRYPTOGRAPHY.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "npm run build:js",
+    "build:js": "node build-js.js",
+    "test": "node test-js-package.js",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist/",
+    "src/gq/",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/beanapologist/seed.git"
+  },
+  "keywords": [
+    "procedural-generation",
+    "deterministic",
+    "prng",
+    "reproducible-testing",
+    "pseudo-random",
+    "deterministic-streams",
+    "golden-ratio",
+    "procedural-content",
+    "game-development",
+    "simulation",
+    "testing",
+    "data-compression",
+    "seed-generation",
+    "binary-watermarking"
+  ],
+  "author": "beanapologist",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/beanapologist/seed/issues"
+  },
+  "homepage": "https://github.com/beanapologist/seed#readme",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ]
+}

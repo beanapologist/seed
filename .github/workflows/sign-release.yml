@@ -1,0 +1,53 @@
+name: Sign and Upload Release Assets
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  sign-and-upload:
+    runs-on: ubuntu-latest
+    if: "github.event.release.tag_name != ''"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gnupg jq curl
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          sudo apt-get update && sudo apt-get install -y gh
+
+      - name: Generate checksums
+        run: ./scripts/generate_checksums.sh
+
+      - name: Import GPG key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          if [ -z "${GPG_PRIVATE_KEY:-}" ]; then
+            echo "No GPG_PRIVATE_KEY provided; skipping signing"
+            exit 0
+          fi
+          echo "$GPG_PRIVATE_KEY" | base64 --decode > private.key
+          gpg --batch --import private.key
+
+      - name: Sign checksums (detached, ASCII-armored)
+        run: |
+          if gpg --list-secret-keys >/dev/null 2>&1; then
+            gpg --batch --yes --armor --output checksums.txt.sig --detach-sign checksums.txt
+          else
+            echo "No GPG key available; skipping signature"
+          fi
+
+      - name: Upload artifacts to GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG=${{ github.event.release.tag_name }}
+          echo "Uploading checksums to release $TAG"
+          gh release upload "$TAG" checksums.txt --clobber || true
+          if [ -f checksums.txt.sig ]; then
+            gh release upload "$TAG" checksums.txt.sig --clobber || true
+          fi

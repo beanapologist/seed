@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/beanapologist/seed/discussions
+    about: Ask questions, share ideas, and discuss GoldenSeed
+  - name: 📚 Documentation
+    url: https://github.com/beanapologist/seed#readme
+    about: Read the documentation and examples
+  - name: 🚀 Good First Issues
+    url: https://github.com/beanapologist/seed/labels/good%20first%20issue
+    about: Find beginner-friendly issues to contribute

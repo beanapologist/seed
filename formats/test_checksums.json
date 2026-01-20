@@ -1,0 +1,20 @@
+{
+  "golden_seed_132.bin": {
+    "size_bytes": 132,
+    "size_bits": 1056,
+    "sha256": "aa411640a680d9aee4b3fec7f4540a8e2a515d9fcb23d8fea08272689f7bde8a",
+    "sha512": "f09ca7828a352eab9621299238eb347c37ee1fa1735fa7c01a790b2db7127bf9eb0ede74214bfd8ed83df3a30cb535f3a9aaf87caf8a1165a2218a0e7e76be0a"
+  },
+  "golden_seed_256.bin": {
+    "size_bytes": 256,
+    "size_bits": 2048,
+    "sha256": "b77ac93b90746e03f76d34e6a4a5f6733c61118d3ff3df61dea567416651435b",
+    "sha512": "45211701fe0a788fb8faef60cc8d58c54cd0a368db2e10a546c0e5c0abdcc1b6ff5f6b38971438cd511aed8e6321d2294c7b274f71245d3e1afa6c54187fbe66"
+  },
+  "golden_seed_512.bin": {
+    "size_bytes": 512,
+    "size_bits": 4096,
+    "sha256": "0d657e8e11675cd3543046f48dcc94fe68c33749ed93d1f32d0c4fa3317fb20a",
+    "sha512": "e888a804ab367d5a7fca31af6703305531b7461db79147761d6f74e1ea756b83443c842a09c29d6133cd410a585c4c69748e2df17b8edc2e0f2f28f4611fafca"
+  }
+}
