@@ -20,7 +20,7 @@ import unittest
 import hashlib
 # Add repository root to path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from qkd.algorithms.universal_qkd import (
+from gq.universal_qkd import (
     HEX_SEED,
     EXPECTED_CHECKSUM,
     verify_seed_checksum,
@@ -316,7 +316,7 @@ class TestUniversalQKDCLI(unittest.TestCase):
     def run_cli(self, args):
         """Helper method to run CLI and capture output."""
         result = subprocess.run(
-            [sys.executable, "qkd/algorithms/universal_qkd.py"] + args,
+            [sys.executable, "-m", "gq.cli.universal"] + args,
             capture_output=True,
             text=True
         )

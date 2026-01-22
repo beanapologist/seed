@@ -123,21 +123,15 @@ jobs:
       with:
         python-version: '3.11'
     
-    - name: Test Unix installation script
-      if: matrix.os != 'windows-latest'
+    - name: Test pip installation
       run: |
-        chmod +x install.sh
-        ./install.sh
-    
-    - name: Test Windows installation script
-      if: matrix.os == 'windows-latest'
-      run: |
-        ./install.bat
-      shell: cmd
+        python -m pip install --upgrade pip
+        pip install -e .
     
     - name: Verify installation
       run: |
         python -c "import gq; print(f'Version: {gq.__version__}')"
+        python -c "from gq import UniversalQKD; print('Installed successfully')"
 
   package-quality:
     name: Package Quality Checks
