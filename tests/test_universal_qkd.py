@@ -316,7 +316,7 @@ class TestUniversalQKDCLI(unittest.TestCase):
     def run_cli(self, args):
         """Helper method to run CLI and capture output."""
         result = subprocess.run(
-            [sys.executable, "qkd/algorithms/universal_qkd.py"] + args,
+            [sys.executable, "-m", "gq.cli.universal"] + args,
             capture_output=True,
             text=True
         )
