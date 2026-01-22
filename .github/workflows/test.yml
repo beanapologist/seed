@@ -33,37 +33,13 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e .
 
-    - name: Run GQS-1 unit tests
+    - name: Install test dependencies
       run: |
-        python -m unittest test_gqs1 -v
+        pip install pytest
 
-    - name: Run Universal stream generator unit tests
+    - name: Run all tests
       run: |
-        python -m unittest test_universal_qkd -v
-
-    - name: Run Large Seed Verification unit tests
-      run: |
-        python -m unittest test_large_seed_verification -v
-
-    - name: Run Binary Verification unit tests
-      run: |
-        python -m unittest test_binary_verification -v
-
-    - name: Run Edge Cases tests (STL)
-      run: |
-        python -m unittest tests.test_edge_cases -v
-
-    - name: Run Cross-Platform Determinism tests (STL)
-      run: |
-        python -m unittest tests.test_cross_platform_determinism -v
-
-    - name: Run Multi-Seed Collision tests (STL)
-      run: |
-        python -m unittest tests.test_multi_seed_collision -v
-
-    - name: Run Quantum Seed Foundations tests
-      run: |
-        python -m unittest tests.test_quantum_seed_foundations -v
+        python -m pytest tests/ -v
 
     - name: Verify first stream matches specification
       run: |
@@ -153,33 +129,14 @@ jobs:
       with:
         python-version: "3.11"
 
-    - name: Verify seed checksums
+    - name: Install package
       run: |
-        python -c "
-        import hashlib
+        python -m pip install --upgrade pip
+        pip install -e .
 
-        # Verify golden_seed_16.bin
-        with open('formats/golden_seed_16.bin', 'rb') as f:
-            data = f.read()
-        checksum = hashlib.sha256(data).hexdigest()
-        expected = '87f829d95b15b08db9e5d84ff06665d077b267cfc39a5fa13a9e002b3e4239c5'
-        assert checksum == expected, f'golden_seed_16.bin checksum mismatch: {checksum}'
-        print(f'✓ golden_seed_16.bin: {checksum}')
-
-        # Verify golden_seed_32.bin
-        with open('formats/golden_seed_32.bin', 'rb') as f:
-            data = f.read()
-        checksum = hashlib.sha256(data).hexdigest()
-        expected = '096412ca0482ab0f519bc0e4ded667475c45495047653a21aa11e2c7c578fa6f'
-        assert checksum == expected, f'golden_seed_32.bin checksum mismatch: {checksum}'
-        print(f'✓ golden_seed_32.bin: {checksum}')
-
-        print('✓ All seed checksums validated')
-        "
-
-    - name: Run checksum validation script
+    - name: Verify package installation
       run: |
-        cd formats && bash ../scripts/validate_checksums.sh
+        python -c "from gq import UniversalQKD, GQS1; print('✓ Package imports successful')"
 
   coverage:
     name: Code Coverage
@@ -201,13 +158,11 @@ jobs:
 
     - name: Run tests with coverage
       run: |
-        python -m pytest test_gqs1.py test_universal_qkd.py --cov=src/gq --cov-report=term-missing --cov-report=xml || \
-        python -m unittest test_gqs1 test_universal_qkd -v
+        python -m pytest tests/ --cov=src/gq --cov-report=term-missing --cov-report=xml
 
     - name: Display coverage summary
       run: |
         echo "Test suite completed successfully"
-        echo "Note: Coverage reporting requires pytest"
 
   scalability:
     name: Scalability and Performance Tests
@@ -227,21 +182,14 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -e .
+        pip install pytest
 
-    - name: Run Scalability tests (10K streams)
+    - name: Run compression capacity tests
       run: |
-        python -m unittest tests.test_scalability_stress.TestLargeScaleKeyGeneration.test_generate_10k_keys -v
-
-    - name: Run Performance benchmarks
-      run: |
-        python -m unittest tests.test_scalability_stress.TestPerformanceBenchmarks -v
-
-    - name: Run Memory efficiency tests
-      run: |
-        python -m unittest tests.test_scalability_stress.TestMemoryEfficiency -v
+        python -m pytest tests/test_compression_capacity.py -v
 
   extreme-tests:
-    name: Extreme Volume and Velocity Tests
+    name: Edge Cases and Additional Tests
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -258,19 +206,16 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -e .
+        pip install pytest
 
-    - name: Run Ultra-High Speed tests
+    - name: Run edge cases tests
       run: |
-        python -m unittest tests.test_extreme_volume_velocity.TestUltraHighSpeed.test_warm_vs_cold_start_timing -v
+        python -m pytest tests/test_edge_cases.py -v
 
-    - name: Run Precision and Edge Cases tests
+    - name: Run watermark tests
       run: |
-        python -m unittest tests.test_extreme_volume_velocity.TestPrecisionEdgeCases -v
+        python -m pytest tests/test_watermark.py tests/test_watermark_integration.py -v
 
-    - name: Run Memory Resource Limits (subset)
+    - name: Run golden ratio coin flip tests
       run: |
-        python -m unittest tests.test_extreme_volume_velocity.TestMemoryResourceLimits.test_minimal_generator_footprint -v
-
-    - name: Run Counter Boundary tests
-      run: |
-        python -m unittest tests.test_extreme_volume_velocity.TestPrecisionEdgeCases.test_counter_overflow_boundary -v
+        python -m pytest tests/test_golden_ratio_coin_flip.py -v

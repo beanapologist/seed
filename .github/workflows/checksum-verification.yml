@@ -1,156 +1,28 @@
 name: Large Seed Checksum Verification
 
+# Disabled - checksum and formats directories removed during refactoring
+# This workflow references removed directories and scripts
+
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  checksum-verification:
-    name: Verify Checksums for 1056+ Bit Seeds
+  skip:
+    name: Workflow Disabled
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v6
-
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: "3.11"
-
-    - name: Display Python version
-      run: python -c "import sys; print(f'Python {sys.version}')"
-
-    - name: Install required Python dependencies
+    - name: Skip message
       run: |
-        python -m pip install --upgrade pip
-        # No additional dependencies needed - uses only Python standard library
-
-    - name: Verify existence of large seed files
-      id: check-files
+        echo "This workflow has been disabled as part of the DRBG refactoring."
+        echo "The checksum/ and formats/ directories were removed to focus on core functionality."
+        echo "Core functionality is validated through the main test suite."
+jobs:
+  skip:
+    name: Workflow Disabled
+    runs-on: ubuntu-latest
+    steps:
+    - name: Skip message
       run: |
-        echo "Checking for 1056+ bit seed files..."
-        
-        # Check for test seed files
-        files_found=0
-        for file in formats/golden_seed_132.bin formats/golden_seed_256.bin formats/golden_seed_512.bin; do
-          if [ -f "$file" ]; then
-            size_bytes=$(stat -c%s "$file")
-            size_bits=$((size_bytes * 8))
-            echo "✓ Found: $file (${size_bits} bits)"
-            if [ $size_bits -ge 1056 ]; then
-              files_found=$((files_found + 1))
-            fi
-          else
-            echo "✗ Missing: $file"
-          fi
-        done
-        
-        echo "files_found=$files_found" >> $GITHUB_OUTPUT
-        
-        if [ $files_found -eq 0 ]; then
-          echo "❌ No seed files with 1056+ bits found!"
-          exit 1
-        fi
-        
-        echo "✓ Found $files_found seed file(s) with 1056+ bits"
-
-    - name: Run checksum verification
-      id: verify-checksums
-      run: |
-        echo "Running checksum verification for large seeds..."
-        python checksum/verify_large_seeds.py > verification_log.txt 2>&1
-        exit_code=$?
-        
-        cat verification_log.txt
-        
-        if [ $exit_code -ne 0 ]; then
-          echo "❌ Checksum verification failed!"
-          exit 1
-        fi
-        
-        echo "✓ Checksum verification passed"
-
-    - name: Run manifested data verification
-      id: verify-manifested
-      run: |
-        echo "Running manifested data verification..."
-        python checksum/verify_large_seeds.py --manifested > manifested_log.txt 2>&1
-        exit_code=$?
-        
-        cat manifested_log.txt
-        
-        if [ $exit_code -ne 0 ]; then
-          echo "❌ Manifested data verification failed!"
-          exit 1
-        fi
-        
-        echo "✓ Manifested data verification passed"
-
-    - name: Generate verification summary
-      if: always()
-      run: |
-        echo "## Checksum Verification Summary" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        
-        if [ -f verification_log.txt ]; then
-          echo "### Seed File Verification" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          cat verification_log.txt >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-        fi
-        
-        if [ -f manifested_log.txt ]; then
-          echo "### Manifested Data Verification" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          head -80 manifested_log.txt >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-        fi
-
-    - name: Store verification logs as artifacts
-      if: always()
-      uses: actions/upload-artifact@v6
-      with:
-        name: checksum-verification-logs
-        path: |
-          verification_log.txt
-          manifested_log.txt
-        retention-days: 30
-
-    - name: Verify JSON output format
-      run: |
-        echo "Testing JSON output format..."
-        python checksum/verify_large_seeds.py --json > verification.json
-        
-        # Validate JSON is parseable
-        python -c "import json; data = json.load(open('verification.json')); print(f'✓ Valid JSON with {len(data)} entries')"
-
-    - name: Test individual file verification
-      run: |
-        echo "Testing individual file verification..."
-        for file in formats/golden_seed_132.bin formats/golden_seed_256.bin formats/golden_seed_512.bin; do
-          if [ -f "$file" ]; then
-            echo "Verifying $file..."
-            python checksum/verify_large_seeds.py "$file"
-          fi
-        done
-
-    - name: Success notification
-      if: success()
-      run: |
-        echo "✅ All checksum verifications passed successfully!"
-        echo "✓ Seed file integrity validated"
-        echo "✓ Manifested data integrity validated"
-        echo "✓ All 1056+ bit seeds verified"
-
-    - name: Failure notification
-      if: failure()
-      run: |
-        echo "❌ Checksum verification workflow failed!"
-        echo "Please review the verification logs for details."
-        echo "Check the artifacts for complete logs."
-        exit 1
+        echo "This workflow has been disabled as part of the DRBG refactoring."
+        echo "The checksum/ and formats/ directories were removed to focus on core functionality."
+        echo "Core functionality is validated through the main test suite."
