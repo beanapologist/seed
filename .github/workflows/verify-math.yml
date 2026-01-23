@@ -287,6 +287,8 @@ jobs:
   test-matrix:
     name: Multi-Version Python Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
