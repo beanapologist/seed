@@ -90,8 +90,44 @@ chunk = world.generate_chunk(0, 0)
 print(f"Biome: {chunk['biome']}, Elevation: {chunk['elevation']}")
 ```
 
+### 🎮 Try the Interactive Demo
+
+Want to see GoldenSeed in action? Run our simple demo to see how different seeds produce unique, deterministic outputs:
+
+```bash
+# Download and run the demo
+python3 examples/simple_seed_demo.py 42
+```
+
+**Example Output (Seed 42):**
+```
+🎨 ASCII Art Pattern:
+----------------------------------------------------------------------
+#@@##. +#*@:-%.#@*+.-:. #-*#.**+@% @ :-*@%.%*% .*# :** = @%@
+%#:@.=-#:: %-%=  :%-%%--+*#@%=%=:-%+# @## :%% @* ::-* =..%+:
+=.@:%=@:%.+ %#=# =.:%.@% =%-** @%-:-::.=.-=: *=::++=: #=*-+#
+
+🎨 Color Palette:
+  Color 1: #1b8bf9  Color 2: #45c4ff  Color 3: #3130dc
+
+🔲 Character Grid:
+▒  ▒▒▓██▒▓ ▒
+ ▓█▓░▒▓█▒░▓▒
+ ░█ █▒░▓ ░▓░
+```
+
+**Try Different Seeds:**
+```bash
+python3 examples/simple_seed_demo.py 0      # Generate pattern for seed 0
+python3 examples/simple_seed_demo.py 999    # Generate pattern for seed 999
+python3 examples/simple_seed_demo.py 12345  # Generate pattern for seed 12345
+```
+
+> 🎲 **Same seed = same output, always!** Perfect for procedural generation in games, art, and simulations.
+
 ### More Examples
 
+- [**Interactive Seed Demo**](examples/simple_seed_demo.py) — See unique outputs from different seeds
 - [Procedural Generation](examples/procedural_generation.py) — Games, world-building, infinite content
 - [Seed Distribution Demo](examples/seed_distribution_demo.py) — Extreme compression, bandwidth savings
 - [Binary Fusion Tap](examples/binary_fusion_tap.py) — Core algorithm examples in 6+ languages
